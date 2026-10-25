@@ -79,6 +79,27 @@ def chess_move():
     })
 
 
+@app.route("/api/chess/start", methods=["POST"])
+def chess_start():
+    """Let the bot make the opening move when the human chooses Black."""
+    import chess
+    import chess_bot
+
+    data = request.get_json(silent=True) or {}
+    try:
+        board = chess.Board(data.get("fen", chess.STARTING_FEN))
+    except ValueError:
+        return error("Invalid starting position.")
+    if board.is_game_over():
+        return jsonify({"fen": board.fen(), "bot_move": None, "game_over": True, "result": board.result()})
+    move = chess_bot.get_best_move(board)
+    board.push(move)
+    return jsonify({
+        "fen": board.fen(), "bot_move": move.uci(), "game_over": board.is_game_over(),
+        "result": board.result() if board.is_game_over() else None, "in_check": board.is_check(),
+    })
+
+
 @app.route("/api/chess/legal", methods=["POST"])
 def chess_legal():
     """Body: {"fen": "...", "from": "e2"} -> list of squares that piece can move to."""
