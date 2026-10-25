@@ -286,8 +286,8 @@ class Game:
                     p.cash += amt
         elif action == "per_player":
             for other in self.players:
-                if other is not p and not other.bankrupt:
-                    self._pay(min(value, other.cash), other)
+                if other is not p and not other.bankrupt and not p.bankrupt:
+                    self._pay(value, other)
         elif action == "repairs":
             total = sum((100 if n == 5 else 25 * n) for n in p.buildings.values())
             self._log(f"{p.name} pays {total} in building repairs.")
