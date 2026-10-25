@@ -1,11 +1,35 @@
 {% extends "base.html" %}
-{% block title %}Game Hub{% endblock %}
+{% block title %}Khel — A little game club{% endblock %}
 {% block content %}
-<h1>Game Hub</h1>
-<p>Pick a game. Chess and Checkers are played against a minimax bot; Business is a Monopoly-style game for 2 to 6 players.</p>
-<div class="cards">
-  <a class="card" href="{{ url_for('chess_page') }}"><h2>Chess</h2><p>You are White. Bot uses minimax with alpha-beta pruning (depth 3).</p></a>
-  <a class="card" href="{{ url_for('checkers_page') }}"><h2>Checkers</h2><p>You are Red. Forced captures and multi-jumps are enforced.</p></a>
-  <a class="card" href="{{ url_for('business_page') }}"><h2>Business</h2><p>Roll, buy cities, collect rent, avoid jail.</p></a>
+<section class="hero">
+  <div class="eyebrow">A little game club</div>
+  <h1>Make room for<br><span>one more game.</span></h1>
+  <p class="hero-copy">Three classics, one shared table. Sharpen your strategy, chase a comeback, or put your fortune on the roll. Your move.</p>
+  <div class="hero-foot"><span class="pip"></span> Ready when you are <span aria-hidden="true">·</span> No sign-up, just play</div>
+</section>
+
+<div class="section-heading">
+  <h2>Choose your table</h2>
+  <p>01 — 03 / Pick a game</p>
 </div>
+<section class="cards" aria-label="Available games">
+  <a class="card" href="{{ url_for('chess_page') }}">
+    <div class="card-top"><span class="game-number">01 / STRATEGY</span><span class="game-symbol" aria-hidden="true">♞</span></div>
+    <h2>Chess</h2>
+    <p>Quiet confidence. Sharp tactics. Play White against a minimax bot and find the move hiding in plain sight.</p>
+    <div class="card-link"><span>Take your seat</span><span aria-hidden="true">↗</span></div>
+  </a>
+  <a class="card" href="{{ url_for('checkers_page') }}">
+    <div class="card-top"><span class="game-number">02 / TACTICS</span><span class="game-symbol" aria-hidden="true">◉</span></div>
+    <h2>Checkers</h2>
+    <p>Make every jump count. Forced captures, multi-jumps, and a bot that won't give away the board.</p>
+    <div class="card-link"><span>Make a move</span><span aria-hidden="true">↗</span></div>
+  </a>
+  <a class="card" href="{{ url_for('business_page') }}">
+    <div class="card-top"><span class="game-number">03 / FORTUNE</span><span class="game-symbol" aria-hidden="true">✳</span></div>
+    <h2>Business</h2>
+    <p>Roll the dice, buy the city, collect your rent. Gather two to six players and see who comes out on top.</p>
+    <div class="card-link"><span>Start a rivalry</span><span aria-hidden="true">↗</span></div>
+  </a>
+</section>
 {% endblock %}
