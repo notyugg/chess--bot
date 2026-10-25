@@ -247,3 +247,8 @@ footer { border-top: 1px solid var(--line); padding: 20px 0 0; margin-top: 48px;
   .page-business_page .game-area { grid-template-columns:1fr; }
   .page-business_page .finance-panel { margin-bottom:16px; }
 }
+
+.page-business_page .business-rules { display:grid; gap:7px; padding:16px 18px; margin-bottom:16px; border:1px solid var(--line); border-radius:15px; background:linear-gradient(135deg,rgba(232,169,32,.09),rgba(255,255,255,.025)); color:var(--muted); font-size:.85rem; line-height:1.45; }
+.page-business_page .business-rules strong { color:var(--ivory); font-size:1rem; }
+.page-business_page .business-rules span { display:flex; gap:8px; align-items:flex-start; }
+.page-business_page .business-rules span::before { content:"✦"; color:var(--turmeric); flex:none; }
