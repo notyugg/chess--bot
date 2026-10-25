@@ -535,7 +535,7 @@ class Game:
             self.current=a["turn"]; self.auction=None; self.phase="end_turn"; return
         if leader is None and len(a["passed"]) >= len(eligible):
             self._log(f"No bids for {BOARD[a['property']]['name']}; it returns to the bank.")
-            self.auction=None; self.phase="end_turn"; return
+            self.current=a["turn"]; self.auction=None; self.phase="end_turn"; return
         for step in range(1,len(self.players)+1):
             nxt=(self.current+step)%len(self.players)
             if nxt in eligible and nxt not in a["passed"]:
