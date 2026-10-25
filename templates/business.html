@@ -130,9 +130,12 @@ function render() {
   const phase = state.phase;
   const cur = state.players[state.current];
   const roll = state.last_roll ? `Rolled ${state.last_roll[0]} + ${state.last_roll[1]}` : "";
+  const dieGlyph = ["", "⚀", "⚁", "⚂", "⚃", "⚄", "⚅"];
+  const d1 = state.last_roll ? dieGlyph[state.last_roll[0]] : "⚄";
+  const d2 = state.last_roll ? dieGlyph[state.last_roll[1]] : "⚁";
   center.innerHTML = phase === "over"
-    ? `<h2>${state.winner} wins!</h2>`
-    : `<h3>${state.current_name}'s turn</h3><div>${roll}</div>`;
+    ? "<div class='turn-label'>GAME COMPLETE</div><h2>" + state.winner + " wins!</h2><div class='dice-pair'><span class='die'>♛</span></div>"
+    : "<div class='turn-label'>YOUR NEXT MOVE</div><h3>" + state.current_name + "'s turn</h3><div class='dice-pair'><span class='die'>" + d1 + "</span><span class='die'>" + d2 + "</span></div><div class='roll-total'>" + (state.last_roll ? "Rolled " + state.last_roll[0] + " + " + state.last_roll[1] + " = " + (state.last_roll[0] + state.last_roll[1]) : "Roll to begin your turn") + "</div>";
 
   const actions = document.createElement("div");
   actions.className = "actions";
