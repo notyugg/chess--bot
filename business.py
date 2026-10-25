@@ -12,6 +12,10 @@ GO_SALARY = 200
 JAIL_POS = 10
 JAIL_FINE = 50
 BOARD_SIZE = 40
+LOAN_STEP = 200
+LOAN_LIMIT = 1000
+LOAN_INTEREST_RATE = 0.10
+BUILD_COST = {"brown": 50, "lightblue": 50, "pink": 100, "orange": 100, "red": 150, "yellow": 150, "green": 200, "blue": 200}
 
 
 # ---------------------------------------------------------------- board ----
@@ -102,6 +106,9 @@ class Player:
         self.jail_turns = 0
         self.properties = []
         self.bankrupt = False
+        self.loan = 0
+        self.mortgaged = []
+        self.buildings = {}
 
     def to_dict(self):
         return {
@@ -111,6 +118,10 @@ class Player:
             "in_jail": self.in_jail,
             "properties": sorted(self.properties),
             "bankrupt": self.bankrupt,
+            "loan": self.loan,
+            "mortgaged": sorted(self.mortgaged),
+            "buildings": {str(k): v for k, v in self.buildings.items()},
+            "net_worth": self.cash + sum(BOARD[i]["price"] // 2 for i in self.properties) + sum(BUILD_COST.get(BOARD[i].get("color"), 50) * n // 2 for i, n in self.buildings.items()) - self.loan,
         }
 
 
@@ -136,6 +147,7 @@ class Game:
         self.doubles_streak = 0
         self.log = []
         self.winner = None
+        self.auction = None
 
     # ---- helpers ----
     @property
@@ -183,11 +195,14 @@ class Game:
         creditor_idx = self.players.index(to) if to is not None else None
         for sq in p.properties:
             if creditor_idx is None:
-                del self.owners[sq]          # back to the bank
+                self.owners.pop(sq, None)
             else:
                 self.owners[sq] = creditor_idx
-                to.properties.append(sq)
+                if sq not in to.properties: to.properties.append(sq)
         p.properties = []
+        p.mortgaged = []
+        p.buildings = {}
+        p.loan = 0
         self._log(f"{p.name} is bankrupt!")
         alive = [pl for pl in self.players if not pl.bankrupt]
         if len(alive) == 1:
@@ -198,7 +213,12 @@ class Game:
     def _rent(self, sq_index, dice_total):
         sq = BOARD[sq_index]
         owner = self.players[self.owners[sq_index]]
+        if sq_index in owner.mortgaged:
+            return 0
         if sq["type"] == "property":
+            houses = owner.buildings.get(sq_index, 0)
+            if houses:
+                return sq["rent"] * [1, 5, 15, 45, 80, 125][min(houses, 5)]
             rent = sq["rent"]
             group = color_group(sq["color"])
             if all(self.owners.get(i) == self.owners[sq_index] for i in group):
@@ -343,6 +363,11 @@ class Game:
             return self.state()
         self.doubles_streak = 0
         self.rolled_doubles = False
+        if self.player.loan:
+            interest = max(10, int(self.player.loan * LOAN_INTEREST_RATE + 0.5))
+            self._log(f"{self.player.name} pays {interest} loan interest.")
+            self._pay(interest)
+            if self.phase == "over": return self.state()
         while True:
             self.current = (self.current + 1) % len(self.players)
             if not self.player.bankrupt:
@@ -362,6 +387,9 @@ class Game:
             "owners": {str(k): v for k, v in self.owners.items()},
             "log": self.log[-10:],
             "winner": self.winner,
+            "auction": self.auction,
+            "finance": {"loan_step": LOAN_STEP, "loan_limit": LOAN_LIMIT, "interest_rate": LOAN_INTEREST_RATE, "building_costs": BUILD_COST},
+            "board_assets": {str(i): {"mortgaged": i in self.players[o].mortgaged, "buildings": self.players[o].buildings.get(i, 0)} for i, o in self.owners.items()},
         }
 
 
