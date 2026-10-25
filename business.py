@@ -350,8 +350,11 @@ class Game:
 
     def skip_buy(self):
         self._check_phase("buy")
-        self.phase = "end_turn"
-        self._log(f"{self.player.name} did not buy {BOARD[self.player.position]['name']}.")
+        sq = BOARD[self.player.position]
+        self._log(f"{self.player.name} passed on {sq['name']}; the property is up for auction.")
+        self.auction = {"property": self.player.position, "bid": 0, "leader": None,
+                        "passed": [], "eligible": [i for i, p in enumerate(self.players) if not p.bankrupt]}
+        self.phase = "auction"
         return self.state()
 
     def end_turn(self):
@@ -482,6 +485,44 @@ class Game:
         p.cash += take_cash-give_cash; other.cash += give_cash-take_cash
         self._log(f"{p.name} completed a trade with {other.name}.")
         return self.state()
+
+
+    def auction_bid(self, amount=10):
+        if self.phase != "auction" or not self.auction: raise ValueError("No auction is active.")
+        a=self.auction; p=self.player
+        try: amount=int(amount)
+        except (TypeError, ValueError): raise ValueError("Bid must be a whole number.")
+        if amount < a["bid"]+10: raise ValueError(f"Bid at least {a['bid']+10}.")
+        if p.bankrupt or p.cash < amount: raise ValueError("You cannot afford that bid.")
+        a["bid"]=amount; a["leader"]=self.current; a["passed"]=[]
+        self._log(f"{p.name} bids {amount} for {BOARD[a['property']]['name']}.")
+        self._advance_auction(); return self.state()
+
+    def auction_pass(self):
+        if self.phase != "auction" or not self.auction: raise ValueError("No auction is active.")
+        if self.current not in self.auction["passed"]: self.auction["passed"].append(self.current)
+        self._log(f"{self.player.name} passes on the auction.")
+        self._advance_auction(); return self.state()
+
+    def _advance_auction(self):
+        a=self.auction
+        if not a: return
+        eligible=[i for i in a["eligible"] if not self.players[i].bankrupt]
+        leader=a["leader"]
+        if leader is not None and all(i == leader or i in a["passed"] for i in eligible):
+            sq=a["property"]; winner=self.players[leader]
+            if winner.cash >= a["bid"]:
+                winner.cash-=a["bid"]; winner.properties.append(sq); self.owners[sq]=leader
+                self._log(f"{winner.name} won {BOARD[sq]['name']} at auction for {a['bid']}.")
+            self.auction=None; self.phase="end_turn"; return
+        if leader is None and len(a["passed"]) >= len(eligible):
+            self._log(f"No bids for {BOARD[a['property']]['name']}; it returns to the bank.")
+            self.auction=None; self.phase="end_turn"; return
+        for step in range(1,len(self.players)+1):
+            nxt=(self.current+step)%len(self.players)
+            if nxt in eligible and nxt not in a["passed"]:
+                self.current=nxt; return
+        self.auction=None; self.phase="end_turn"
 
     def state(self):
         return {
