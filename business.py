@@ -377,6 +377,53 @@ class Game:
         return self.state()
 
     # ---- serialisation ----
+
+    def take_loan(self, amount=LOAN_STEP):
+        self._check_phase("roll"); p = self.player
+        try: amount = int(amount)
+        except (TypeError, ValueError): raise ValueError("Loan amount must be a whole number.")
+        if amount <= 0 or amount % LOAN_STEP: raise ValueError(f"Loans must be multiples of {LOAN_STEP}.")
+        if p.loan + amount > LOAN_LIMIT: raise ValueError(f"Bank loan limit is {LOAN_LIMIT}.")
+        p.loan += amount; p.cash += amount
+        self._log(f"{p.name} borrowed {amount}; loan balance is {p.loan}.")
+        return self.state()
+
+    def repay_loan(self, amount=LOAN_STEP):
+        self._check_phase("roll"); p = self.player
+        try: amount = int(amount)
+        except (TypeError, ValueError): raise ValueError("Repayment must be a whole number.")
+        if amount <= 0 or amount % LOAN_STEP: raise ValueError(f"Repayments must be multiples of {LOAN_STEP}.")
+        if p.loan <= 0: raise ValueError("You have no bank loan.")
+        payment = min(amount, p.loan)
+        if p.cash < payment: raise ValueError("Not enough cash to repay that amount.")
+        p.cash -= payment; p.loan -= payment
+        self._log(f"{p.name} repaid {payment}; loan balance is {p.loan}.")
+        return self.state()
+
+    def mortgage(self, square):
+        self._check_phase("roll"); p = self.player
+        try: square = int(square)
+        except (TypeError, ValueError): raise ValueError("Choose a valid property.")
+        if square not in p.properties: raise ValueError("You do not own that property.")
+        if square in p.mortgaged: raise ValueError("That property is already mortgaged.")
+        if p.buildings.get(square, 0): raise ValueError("Sell its buildings before mortgaging it.")
+        sq = BOARD[square]
+        if sq["type"] not in ("property", "railroad", "utility"): raise ValueError("That square cannot be mortgaged.")
+        value = sq["price"] // 2; p.mortgaged.append(square); p.cash += value
+        self._log(f"{p.name} mortgaged {sq['name']} for {value}.")
+        return self.state()
+
+    def unmortgage(self, square):
+        self._check_phase("roll"); p = self.player
+        try: square = int(square)
+        except (TypeError, ValueError): raise ValueError("Choose a valid property.")
+        if square not in p.properties or square not in p.mortgaged: raise ValueError("That property is not mortgaged by you.")
+        cost = int(BOARD[square]["price"] * 0.55 + 0.5)
+        if p.cash < cost: raise ValueError(f"You need {cost} to unmortgage it.")
+        p.cash -= cost; p.mortgaged.remove(square)
+        self._log(f"{p.name} unmortgaged {BOARD[square]['name']} for {cost}.")
+        return self.state()
+
     def state(self):
         return {
             "players": [p.to_dict() for p in self.players],
