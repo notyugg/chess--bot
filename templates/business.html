@@ -70,11 +70,11 @@ function playSound(kind) {
     });
   } catch (_) {}
 }
-async function act(name) {
+async function act(name, body = {}) {
   if (name === "roll") playSound("dice");
   else if (name === "buy") playSound("buy");
   else playSound("move");
-  try { state = await api("/api/business/" + name, "POST"); setStatus(""); }
+  try { state = await api("/api/business/" + name, "POST", body); setStatus(""); }
   catch (e) { setStatus(e.message, true); }
   render();
 }
@@ -97,7 +97,8 @@ function render() {
       cell.appendChild(bar);
     }
     const name = document.createElement("div");
-    name.textContent = sq.name + (sq.price ? " (" + sq.price + ")" : "");
+    const assets = state.board_assets[String(i)] || {};
+    name.textContent = sq.name + (sq.price ? " (" + sq.price + ")" : "") + (assets.buildings ? " · " + (assets.buildings === 5 ? "🏨" : "🏠".repeat(assets.buildings)) : "") + (assets.mortgaged ? " · MORTGAGED" : "");
     cell.appendChild(name);
 
     const owner = state.owners[String(i)];
@@ -139,12 +140,12 @@ function render() {
 
   const actions = document.createElement("div");
   actions.className = "actions";
-  const addBtn = (label, name, enabled, secondary = false) => {
+  const addBtn = (label, name, enabled, secondary = false, body = {}) => {
     const b = document.createElement("button");
     b.textContent = label;
     b.disabled = !enabled;
     if (secondary) b.className = "secondary";
-    b.onclick = () => act(name);
+    b.onclick = () => act(name, body);
     actions.appendChild(b);
   };
   addBtn("Roll dice", "roll", phase === "roll");
@@ -152,6 +153,10 @@ function render() {
   addBtn("Skip", "skip", phase === "buy", true);
   addBtn("End turn", "end_turn", phase === "end_turn");
   if (phase === "roll" && cur.in_jail) addBtn("Pay 50 to leave jail", "pay_fine", true, true);
+  if (phase === "auction" && state.auction) {
+    addBtn("Bid " + (state.auction.bid + 10), "auction_bid", true, false, {amount: state.auction.bid + 10});
+    addBtn("Pass auction", "auction_pass", true, true);
+  }
   center.appendChild(actions);
 
   const log = document.createElement("div");
