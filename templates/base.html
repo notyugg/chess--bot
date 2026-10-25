@@ -3,18 +3,24 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>{% block title %}Game Hub{% endblock %}</title>
+  <meta name="theme-color" content="#12142b">
+  <meta name="description" content="Khel — a little world for chess, checkers and Business. Pick a game and make your move.">
+  <title>{% block title %}Khel — Game Club{% endblock %}</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
 </head>
 <body>
-  <nav>
-    <a class="brand" href="{{ url_for('home') }}">Game Hub</a>
+  <nav aria-label="Main navigation">
+    <a class="brand" href="{{ url_for('home') }}"><span class="brand-mark">✳</span>खेल <span style="font-family:'Schibsted Grotesk',sans-serif;font-size:.72rem;font-weight:600;letter-spacing:.04em;color:var(--muted);margin-left:7px">KHEL CLUB</span></a>
+    <a href="{{ url_for('home') }}">All games</a>
     <a href="{{ url_for('chess_page') }}">Chess</a>
     <a href="{{ url_for('checkers_page') }}">Checkers</a>
     <a href="{{ url_for('business_page') }}">Business</a>
   </nav>
   <main>
     {% block content %}{% endblock %}
+    <footer>खेल / KHEL CLUB <span style="float:right">Three games. Your next move.</span></footer>
   </main>
   {% block scripts %}{% endblock %}
 </body>
