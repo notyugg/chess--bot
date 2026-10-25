@@ -88,6 +88,12 @@ CHANCE_CARDS = [
     ("Take a trip to Delhi.", "move_to", 39),
     ("Go directly to Jail.", "gotojail", 0),
     ("Birthday! Collect 20 from every player.", "birthday", 20),
+    ("Bank error in your favour. Collect 150.", "collect", 150),
+    ("You receive a city development grant. Collect 100.", "collect", 100),
+    ("Pay 25 for each house and 100 for each hotel.", "repairs", 0),
+    ("Pay each opponent 50 for a neighbourhood celebration.", "per_player", 50),
+    ("Collect 25 for each house and 100 for each hotel you own.", "building_income", 0),
+    ("Unexpected legal fees. Pay 75.", "pay", 75),
 ]
 
 
@@ -278,6 +284,18 @@ class Game:
                     amt = min(value, other.cash)
                     other.cash -= amt
                     p.cash += amt
+        elif action == "per_player":
+            for other in self.players:
+                if other is not p and not other.bankrupt:
+                    self._pay(min(value, other.cash), other)
+        elif action == "repairs":
+            total = sum((100 if n == 5 else 25 * n) for n in p.buildings.values())
+            self._log(f"{p.name} pays {total} in building repairs.")
+            self._pay(total)
+        elif action == "building_income":
+            total = sum((100 if n == 5 else 25 * n) for n in p.buildings.values())
+            p.cash += total
+            self._log(f"{p.name} collects {total} from property improvements.")
 
     # ---- public actions (one per API route) ----
     def pay_jail_fine(self):
@@ -353,7 +371,7 @@ class Game:
         sq = BOARD[self.player.position]
         self._log(f"{self.player.name} passed on {sq['name']}; the property is up for auction.")
         self.auction = {"property": self.player.position, "bid": 0, "leader": None,
-                        "passed": [], "eligible": [i for i, p in enumerate(self.players) if not p.bankrupt]}
+                        "passed": [], "turn": self.current, "eligible": [i for i, p in enumerate(self.players) if not p.bankrupt]}
         self.phase = "auction"
         return self.state()
 
@@ -514,7 +532,7 @@ class Game:
             if winner.cash >= a["bid"]:
                 winner.cash-=a["bid"]; winner.properties.append(sq); self.owners[sq]=leader
                 self._log(f"{winner.name} won {BOARD[sq]['name']} at auction for {a['bid']}.")
-            self.auction=None; self.phase="end_turn"; return
+            self.current=a["turn"]; self.auction=None; self.phase="end_turn"; return
         if leader is None and len(a["passed"]) >= len(eligible):
             self._log(f"No bids for {BOARD[a['property']]['name']}; it returns to the bank.")
             self.auction=None; self.phase="end_turn"; return
