@@ -236,6 +236,7 @@ function render() {
     if (give.some(x => x === undefined) || take.some(x => x === undefined)) { setStatus("One of the property numbers is invalid.", true); return; }
     const giveCash = Number(prompt("Cash you give:", "0") || 0), takeCash = Number(prompt("Cash you receive:", "0") || 0);
     if (!Number.isFinite(giveCash) || !Number.isFinite(takeCash)) { setStatus("Cash amounts must be numbers.", true); return; }
+    if (!confirm("Confirm this trade with " + state.players[target].name + "?")) return;
     act("trade", {target, give_properties: give, take_properties: take, give_cash: giveCash, take_cash: takeCash});
   });
   side.appendChild(finance);
