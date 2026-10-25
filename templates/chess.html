@@ -1,0 +1,120 @@
+{% extends "base.html" %}
+{% block title %}Chess{% endblock %}
+{% block content %}
+<h1>Chess</h1>
+<p>You are White. Click a piece, then click where to move it.</p>
+<div id="board" class="board"></div>
+<div id="status" class="status"></div>
+<button id="new" class="secondary">New game</button>
+{% endblock %}
+
+{% block scripts %}
+<script>
+const START_FEN = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1";
+const GLYPH = { K:"♔", Q:"♕", R:"♖", B:"♗", N:"♘", P:"♙", k:"♚", q:"♛", r:"♜", b:"♝", n:"♞", p:"♟" };
+const FILES = "abcdefgh";
+
+let fen = START_FEN;
+let selected = null;      // e.g. "e2"
+let targets = [];         // squares the selected piece can go to
+let lastBot = null;       // e.g. "e7e5"
+let over = false;
+
+const boardEl = document.getElementById("board");
+const statusEl = document.getElementById("status");
+
+function setStatus(msg, isError = false) {
+  statusEl.textContent = msg;
+  statusEl.className = "status" + (isError ? " error" : "");
+}
+
+// FEN -> { "e2": "P", ... }
+function parseFen(f) {
+  const map = {};
+  f.split(" ")[0].split("/").forEach((row, i) => {
+    let file = 0;
+    for (const ch of row) {
+      if (/\d/.test(ch)) file += Number(ch);
+      else { map[FILES[file] + (8 - i)] = ch; file++; }
+    }
+  });
+  return map;
+}
+
+function render() {
+  const pieces = parseFen(fen);
+  boardEl.innerHTML = "";
+  for (let rank = 8; rank >= 1; rank--) {
+    for (let f = 0; f < 8; f++) {
+      const name = FILES[f] + rank;
+      const div = document.createElement("div");
+      div.className = "sq " + ((f + rank) % 2 === 0 ? "d" : "l");
+      if (name === selected) div.classList.add("sel");
+      if (targets.includes(name)) div.classList.add("target");
+      if (lastBot && (lastBot.slice(0, 2) === name || lastBot.slice(2, 4) === name)) div.classList.add("last");
+      if (pieces[name]) {
+        const span = document.createElement("span");
+        span.className = "piece-chess";
+        span.textContent = GLYPH[pieces[name]];
+        div.appendChild(span);
+      }
+      div.onclick = () => onSquare(name, pieces);
+      boardEl.appendChild(div);
+    }
+  }
+}
+
+async function post(url, body) {
+  const res = await fetch(url, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(body),
+  });
+  const data = await res.json();
+  if (!res.ok) throw new Error(data.error || "Request failed");
+  return data;
+}
+
+async function onSquare(name, pieces) {
+  if (over) return;
+
+  // clicked a highlighted target -> make the move
+  if (selected && targets.includes(name)) {
+    const piece = pieces[selected];
+    const body = { fen, from: selected, to: name };
+    if (piece === "P" && name[1] === "8") body.promotion = "q";   // auto-queen
+    selected = null; targets = [];
+    setStatus("Bot is thinking...");
+    try {
+      const data = await post("/api/chess/move", body);
+      fen = data.fen;
+      lastBot = data.bot_move;
+      over = data.game_over;
+      if (over) setStatus("Game over: " + data.result);
+      else setStatus(data.in_check ? "Check! Your move." : "Your move.");
+    } catch (e) { setStatus(e.message, true); }
+    render();
+    return;
+  }
+
+  // clicked one of your own (white) pieces -> select it and ask the server where it can go
+  if (pieces[name] && pieces[name] === pieces[name].toUpperCase()) {
+    selected = name;
+    try {
+      targets = (await post("/api/chess/legal", { fen, from: name })).targets;
+    } catch (e) { targets = []; setStatus(e.message, true); }
+  } else {
+    selected = null; targets = [];
+  }
+  render();
+}
+
+document.getElementById("new").onclick = () => {
+  fen = START_FEN; selected = null; targets = []; lastBot = null; over = false;
+  setStatus("Your move."); render();
+};
+
+setStatus("Your move.");
+render();
+</script>
+{% endblock %}

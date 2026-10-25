@@ -1,0 +1,102 @@
+{% extends "base.html" %}
+{% block title %}Checkers{% endblock %}
+{% block content %}
+<h1>Checkers</h1>
+<p>You are Red and move up the board. If a capture is available you must take it.</p>
+<div id="board" class="board"></div>
+<div id="status" class="status"></div>
+<button id="new" class="secondary">New game</button>
+{% endblock %}
+
+{% block scripts %}
+<script>
+let board = [];
+let moves = [];          // legal moves for red, sent by the server
+let selected = null;     // [r, c]
+let lastBot = [];        // squares touched by the bot's last move
+let over = false;
+
+const boardEl = document.getElementById("board");
+const statusEl = document.getElementById("status");
+
+function setStatus(msg, isError = false) {
+  statusEl.textContent = msg;
+  statusEl.className = "status" + (isError ? " error" : "");
+}
+
+const same = (a, b) => a[0] === b[0] && a[1] === b[1];
+
+// moves that start at `selected`
+const movesFromSelected = () => selected ? moves.filter(m => same(m.path[0], selected)) : [];
+
+function render() {
+  boardEl.innerHTML = "";
+  const targetSquares = movesFromSelected().map(m => m.path[m.path.length - 1]);
+  for (let r = 0; r < 8; r++) {
+    for (let c = 0; c < 8; c++) {
+      const div = document.createElement("div");
+      div.className = "sq " + ((r + c) % 2 === 1 ? "d" : "l");
+      if (selected && same(selected, [r, c])) div.classList.add("sel");
+      if (targetSquares.some(t => same(t, [r, c]))) div.classList.add("target");
+      if (lastBot.some(t => same(t, [r, c]))) div.classList.add("last");
+      const p = board[r][c];
+      if (p !== ".") {
+        const disc = document.createElement("div");
+        disc.className = "disc " + p.toLowerCase();
+        if (p === "R" || p === "B") disc.textContent = "♛";
+        div.appendChild(disc);
+      }
+      div.onclick = () => onSquare(r, c);
+      boardEl.appendChild(div);
+    }
+  }
+}
+
+async function onSquare(r, c) {
+  if (over) return;
+
+  // clicked a landing square -> play that move
+  const chosen = movesFromSelected().find(m => same(m.path[m.path.length - 1], [r, c]));
+  if (chosen) {
+    selected = null;
+    setStatus("Bot is thinking...");
+    try {
+      const res = await fetch("/api/checkers/move", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ board, move: chosen }),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || "Request failed");
+      board = data.board;
+      moves = data.moves;
+      lastBot = data.bot_move ? [data.bot_move.path[0], data.bot_move.path[data.bot_move.path.length - 1]] : [];
+      if (data.winner) {
+        over = true;
+        setStatus(data.winner === "red" ? "You win!" : "Bot wins.");
+      } else {
+        setStatus(moves[0].captured.length ? "Your move (you must capture)." : "Your move.");
+      }
+    } catch (e) { setStatus(e.message, true); }
+    render();
+    return;
+  }
+
+  // clicked one of your own pieces that can move -> select it
+  const p = board[r][c];
+  selected = (p === "r" || p === "R") && moves.some(m => same(m.path[0], [r, c])) ? [r, c] : null;
+  render();
+}
+
+async function newGame() {
+  const data = await (await fetch("/api/checkers/new")).json();
+  board = data.board; moves = data.moves;
+  selected = null; lastBot = []; over = false;
+  setStatus("Your move.");
+  render();
+}
+
+document.getElementById("new").onclick = newGame;
+newGame();
+</script>
+{% endblock %}

@@ -1,0 +1,11 @@
+{% extends "base.html" %}
+{% block title %}Game Hub{% endblock %}
+{% block content %}
+<h1>Game Hub</h1>
+<p>Pick a game. Chess and Checkers are played against a minimax bot; Business is a Monopoly-style game for 2 to 6 players.</p>
+<div class="cards">
+  <a class="card" href="{{ url_for('chess_page') }}"><h2>Chess</h2><p>You are White. Bot uses minimax with alpha-beta pruning (depth 3).</p></a>
+  <a class="card" href="{{ url_for('checkers_page') }}"><h2>Checkers</h2><p>You are Red. Forced captures and multi-jumps are enforced.</p></a>
+  <a class="card" href="{{ url_for('business_page') }}"><h2>Business</h2><p>Roll, buy cities, collect rent, avoid jail.</p></a>
+</div>
+{% endblock %}
