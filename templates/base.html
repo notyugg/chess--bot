@@ -10,7 +10,7 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
 </head>
-<body>
+<body class="page-{{ request.endpoint or 'home' }}">
   <nav aria-label="Main navigation">
     <a class="brand" href="{{ url_for('home') }}"><span class="brand-mark">✳</span>खेल <span style="font-family:'Schibsted Grotesk',sans-serif;font-size:.72rem;font-weight:600;letter-spacing:.04em;color:var(--muted);margin-left:7px">KHEL CLUB</span></a>
     <a href="{{ url_for('home') }}">All games</a>
