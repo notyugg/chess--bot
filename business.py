@@ -424,6 +424,65 @@ class Game:
         self._log(f"{p.name} unmortgaged {BOARD[square]['name']} for {cost}.")
         return self.state()
 
+
+    def build(self, square):
+        self._check_phase("roll"); p = self.player
+        try: square = int(square)
+        except (TypeError, ValueError): raise ValueError("Choose a valid property.")
+        if square not in p.properties: raise ValueError("You do not own that property.")
+        sq = BOARD[square]
+        if sq.get("type") != "property" or square in p.mortgaged: raise ValueError("You cannot build there.")
+        group = color_group(sq["color"])
+        if not group or not all(self.owners.get(i) == self.current for i in group): raise ValueError("Own the full colour group to build.")
+        if any(i in p.mortgaged for i in group): raise ValueError("Unmortgage the whole colour group first.")
+        level = p.buildings.get(square, 0)
+        if level >= 5: raise ValueError("This property already has a hotel.")
+        if level > min(p.buildings.get(i, 0) for i in group): raise ValueError("Buildings must be spread evenly across the group.")
+        cost = BUILD_COST[sq["color"]]
+        if p.cash < cost: raise ValueError(f"You need {cost} to build.")
+        p.cash -= cost; p.buildings[square] = level + 1
+        self._log(f"{p.name} built a {'hotel' if level == 4 else 'house'} on {sq['name']} for {cost}.")
+        return self.state()
+
+    def sell_building(self, square):
+        self._check_phase("roll"); p = self.player
+        try: square = int(square)
+        except (TypeError, ValueError): raise ValueError("Choose a valid property.")
+        level = p.buildings.get(square, 0)
+        if square not in p.properties or not level: raise ValueError("No building to sell there.")
+        group = color_group(BOARD[square].get("color"))
+        if level < max((p.buildings.get(i, 0) for i in group), default=0): raise ValueError("Sell buildings evenly across the group.")
+        value = BUILD_COST[BOARD[square]["color"]] // 2
+        p.cash += value
+        if level == 1: p.buildings.pop(square, None)
+        else: p.buildings[square] = level - 1
+        self._log(f"{p.name} sold a building on {BOARD[square]['name']} for {value}.")
+        return self.state()
+
+    def trade(self, target, give_properties=None, take_properties=None, give_cash=0, take_cash=0):
+        self._check_phase("roll")
+        try:
+            target=int(target); give_cash=int(give_cash); take_cash=int(take_cash)
+            give_properties=[int(x) for x in (give_properties or [])]; take_properties=[int(x) for x in (take_properties or [])]
+        except (TypeError, ValueError): raise ValueError("Trade details are invalid.")
+        if target < 0 or target >= len(self.players) or target == self.current: raise ValueError("Choose another player.")
+        p=self.player; other=self.players[target]
+        if other.bankrupt: raise ValueError("That player is bankrupt.")
+        if min(give_cash,take_cash) < 0: raise ValueError("Cash amounts cannot be negative.")
+        if p.cash < give_cash or other.cash < take_cash: raise ValueError("A player cannot afford the cash part.")
+        if any(i not in p.properties for i in give_properties): raise ValueError("You can only offer properties you own.")
+        if any(i not in other.properties for i in take_properties): raise ValueError("You can only request properties they own.")
+        if any(p.buildings.get(i,0) or other.buildings.get(i,0) for i in give_properties + take_properties): raise ValueError("Sell buildings before trading those properties.")
+        for i in give_properties:
+            p.properties.remove(i); other.properties.append(i); self.owners[i]=target
+            if i in p.mortgaged: p.mortgaged.remove(i); other.mortgaged.append(i)
+        for i in take_properties:
+            other.properties.remove(i); p.properties.append(i); self.owners[i]=self.current
+            if i in other.mortgaged: other.mortgaged.remove(i); p.mortgaged.append(i)
+        p.cash += take_cash-give_cash; other.cash += give_cash-take_cash
+        self._log(f"{p.name} completed a trade with {other.name}.")
+        return self.state()
+
     def state(self):
         return {
             "players": [p.to_dict() for p in self.players],
