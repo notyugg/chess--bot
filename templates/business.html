@@ -176,6 +176,69 @@ function render() {
     d.innerHTML = `<b>${p.name}</b>${p.in_jail ? " (in jail)" : ""}<br>Cash: ${p.cash}<br><small>Owns: ${props}</small>`;
     side.appendChild(d);
   });
+
+  const finance = document.createElement("section");
+  finance.className = "finance-panel";
+  const ownProps = cur.properties || [];
+  const propList = ownProps.map(i => i + ": " + BOARD[i].name).join(" · ") || "No properties yet";
+  finance.innerHTML = "<h3>Bank & assets</h3><p>Loan: <b>" + (cur.loan || 0) + "</b> / " + (state.finance ? state.finance.loan_limit : 1000) +
+    "<br><small>Interest: 10% per turn · Net worth: " + (cur.net_worth || 0) + "</small></p><p class='finance-owned'><small>" + propList + "</small></p>";
+  const addFinanceBtn = (label, handler, secondary = true) => {
+    const b = document.createElement("button"); b.textContent = label; if (secondary) b.className = "secondary";
+    b.onclick = handler; finance.appendChild(b);
+  };
+  const chooseSquare = (indices, promptText) => {
+    if (!indices.length) { setStatus("You have no eligible properties.", true); return null; }
+    const list = indices.map(i => i + ": " + BOARD[i].name).join("\n");
+    const answer = prompt(promptText + "\n" + list + "\nEnter the property number:");
+    if (answer === null) return null;
+    const n = Number(answer.trim());
+    return indices.includes(n) ? n : (setStatus("That property number isn't in the list.", true), null);
+  };
+  addFinanceBtn("Borrow 200", () => act("take_loan", {amount: 200}), false);
+  addFinanceBtn("Repay 200", () => act("repay_loan", {amount: 200}));
+  addFinanceBtn("Mortgage property", () => {
+    const sq = chooseSquare(ownProps.filter(i => !(cur.mortgaged || []).includes(i) && !(cur.buildings || {})[String(i)]), "Choose a property to mortgage");
+    if (sq !== null) act("mortgage", {square: sq});
+  });
+  addFinanceBtn("Unmortgage", () => {
+    const sq = chooseSquare(cur.mortgaged || [], "Choose a property to unmortgage");
+    if (sq !== null) act("unmortgage", {square: sq});
+  });
+  addFinanceBtn("Build house / hotel", () => {
+    const sq = chooseSquare(ownProps.filter(i => BOARD[i].type === "property"), "Choose a property to develop");
+    if (sq !== null) act("build", {square: sq});
+  });
+  addFinanceBtn("Sell building", () => {
+    const sq = chooseSquare(Object.keys(cur.buildings || {}).map(Number), "Choose a property to sell a building from");
+    if (sq !== null) act("sell_building", {square: sq});
+  });
+  addFinanceBtn("Trade with player", () => {
+    const candidates = state.players.map((p, i) => i === state.current || p.bankrupt ? null : i + ": " + p.name + " (cash " + p.cash + ")").filter(Boolean).join("\n");
+    const targetRaw = prompt("Choose a player index:\n" + candidates);
+    if (targetRaw === null) return;
+    const target = Number(targetRaw.trim());
+    if (!Number.isInteger(target) || target === state.current || !state.players[target] || state.players[target].bankrupt) { setStatus("Invalid trade target.", true); return; }
+    const parseProps = (raw, list) => {
+      if (!raw.trim()) return [];
+      return raw.split(",").map(s => s.trim()).map(s => {
+        const n = Number(s);
+        if (Number.isInteger(n) && list.includes(n)) return n;
+        return list.find(i => BOARD[i].name.toLowerCase() === s.toLowerCase());
+      });
+    };
+    const giveRaw = prompt("Your properties to give (numbers, comma-separated):\n" + propList, "");
+    if (giveRaw === null) return;
+    const targetProps = state.players[target].properties || [];
+    const takeRaw = prompt("Their properties to receive (numbers, comma-separated):\n" + (targetProps.map(i => i + ": " + BOARD[i].name).join(" · ") || "None"), "");
+    if (takeRaw === null) return;
+    const give = parseProps(giveRaw, ownProps), take = parseProps(takeRaw, targetProps);
+    if (give.some(x => x === undefined) || take.some(x => x === undefined)) { setStatus("One of the property numbers is invalid.", true); return; }
+    const giveCash = Number(prompt("Cash you give:", "0") || 0), takeCash = Number(prompt("Cash you receive:", "0") || 0);
+    if (!Number.isFinite(giveCash) || !Number.isFinite(takeCash)) { setStatus("Cash amounts must be numbers.", true); return; }
+    act("trade", {target, give_properties: give, take_properties: take, give_cash: giveCash, take_cash: takeCash});
+  });
+  side.appendChild(finance);
 }
 
 function showGame() {
