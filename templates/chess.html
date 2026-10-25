@@ -1,120 +1,62 @@
 {% extends "base.html" %}
-{% block title %}Chess{% endblock %}
+{% block title %}Chess — Khel Club{% endblock %}
 {% block content %}
-<h1>Chess</h1>
-<p>You are White. Click a piece, then click where to move it.</p>
-<div id="board" class="board"></div>
-<div id="status" class="status"></div>
-<button id="new" class="secondary">New game</button>
+<div class="page-head">
+  <div><span class="eyebrow">A game of patience</span><h1>Chess</h1><p>Pick your side, settle in, and make your move. Ivory and midnight pieces are designed to stay distinct at a glance.</p></div>
+  <div class="page-tag">♟ Strategy / 2 players</div>
+</div>
+<div class="chess-options">
+  <label for="side-choice">Play as</label>
+  <select id="side-choice" aria-label="Choose which side to play">
+    <option value="white">White · move first</option>
+    <option value="black">Black · move second</option>
+  </select>
+  <button id="new" class="secondary">↻ New game</button>
+  <button id="sound-toggle" class="secondary sound-toggle" aria-pressed="true">♫ Sound on</button>
+</div>
+<div class="game-shell">
+  <section class="chess-stage" aria-label="Chess board">
+    <div class="chess-toolbar">
+      <div class="chess-player"><span id="human-dot" class="player-dot white"></span><span id="human-label">You · White</span></div>
+      <span class="page-tag" id="turn-label">Your move</span>
+    </div>
+    <div id="board" class="board" role="grid" aria-label="Chess board"></div>
+    <div id="status" class="status" aria-live="polite"></div>
+  </section>
+  <aside class="chess-sidebar">
+    <section class="chess-panel"><h2>Move history</h2><div id="move-log" aria-live="polite"><p>No moves yet. Your opening move starts the story.</p></div></section>
+    <section class="chess-panel">
+      <h2>At the table</h2>
+      <div class="chess-player"><span class="player-dot white"></span> White <span style="margin-left:auto;color:var(--muted);font-size:.8rem">Ivory</span></div>
+      <div class="chess-player" style="margin-top:12px"><span class="player-dot black"></span> Black <span style="margin-left:auto;color:var(--muted);font-size:.8rem">Midnight + gold</span></div>
+      <p style="font-size:.82rem;margin:14px 0 0">Click one of your pieces, then a highlighted square. Pawn promotions become queens automatically.</p>
+    </section>
+  </aside>
+</div>
 {% endblock %}
-
 {% block scripts %}
 <script>
 const START_FEN = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1";
 const GLYPH = { K:"♔", Q:"♕", R:"♖", B:"♗", N:"♘", P:"♙", k:"♚", q:"♛", r:"♜", b:"♝", n:"♞", p:"♟" };
 const FILES = "abcdefgh";
-
-let fen = START_FEN;
-let selected = null;      // e.g. "e2"
-let targets = [];         // squares the selected piece can go to
-let lastBot = null;       // e.g. "e7e5"
-let over = false;
-
-const boardEl = document.getElementById("board");
-const statusEl = document.getElementById("status");
-
-function setStatus(msg, isError = false) {
-  statusEl.textContent = msg;
-  statusEl.className = "status" + (isError ? " error" : "");
-}
-
-// FEN -> { "e2": "P", ... }
-function parseFen(f) {
-  const map = {};
-  f.split(" ")[0].split("/").forEach((row, i) => {
-    let file = 0;
-    for (const ch of row) {
-      if (/\d/.test(ch)) file += Number(ch);
-      else { map[FILES[file] + (8 - i)] = ch; file++; }
-    }
-  });
-  return map;
-}
-
-function render() {
-  const pieces = parseFen(fen);
-  boardEl.innerHTML = "";
-  for (let rank = 8; rank >= 1; rank--) {
-    for (let f = 0; f < 8; f++) {
-      const name = FILES[f] + rank;
-      const div = document.createElement("div");
-      div.className = "sq " + ((f + rank) % 2 === 0 ? "d" : "l");
-      if (name === selected) div.classList.add("sel");
-      if (targets.includes(name)) div.classList.add("target");
-      if (lastBot && (lastBot.slice(0, 2) === name || lastBot.slice(2, 4) === name)) div.classList.add("last");
-      if (pieces[name]) {
-        const span = document.createElement("span");
-        span.className = "piece-chess";
-        span.textContent = GLYPH[pieces[name]];
-        div.appendChild(span);
-      }
-      div.onclick = () => onSquare(name, pieces);
-      boardEl.appendChild(div);
-    }
-  }
-}
-
-async function post(url, body) {
-  const res = await fetch(url, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(body),
-  });
-  const data = await res.json();
-  if (!res.ok) throw new Error(data.error || "Request failed");
-  return data;
-}
-
-async function onSquare(name, pieces) {
-  if (over) return;
-
-  // clicked a highlighted target -> make the move
-  if (selected && targets.includes(name)) {
-    const piece = pieces[selected];
-    const body = { fen, from: selected, to: name };
-    if (piece === "P" && name[1] === "8") body.promotion = "q";   // auto-queen
-    selected = null; targets = [];
-    setStatus("Bot is thinking...");
-    try {
-      const data = await post("/api/chess/move", body);
-      fen = data.fen;
-      lastBot = data.bot_move;
-      over = data.game_over;
-      if (over) setStatus("Game over: " + data.result);
-      else setStatus(data.in_check ? "Check! Your move." : "Your move.");
-    } catch (e) { setStatus(e.message, true); }
-    render();
-    return;
-  }
-
-  // clicked one of your own (white) pieces -> select it and ask the server where it can go
-  if (pieces[name] && pieces[name] === pieces[name].toUpperCase()) {
-    selected = name;
-    try {
-      targets = (await post("/api/chess/legal", { fen, from: name })).targets;
-    } catch (e) { targets = []; setStatus(e.message, true); }
-  } else {
-    selected = null; targets = [];
-  }
-  render();
-}
-
-document.getElementById("new").onclick = () => {
-  fen = START_FEN; selected = null; targets = []; lastBot = null; over = false;
-  setStatus("Your move."); render();
-};
-
-setStatus("Your move.");
-render();
+let fen=START_FEN, selected=null, targets=[], lastMoves=[], over=false, humanColor="white", moveHistory=[], soundOn=true, audioCtx=null;
+const boardEl=document.getElementById("board"), statusEl=document.getElementById("status"), moveLogEl=document.getElementById("move-log");
+const turnLabel=document.getElementById("turn-label"), humanLabel=document.getElementById("human-label"), humanDot=document.getElementById("human-dot"), sideChoice=document.getElementById("side-choice");
+function setStatus(msg,isError=false){statusEl.textContent=msg;statusEl.className="status"+(isError?" error":"");turnLabel.textContent=msg.length>26?msg.slice(0,23)+"…":msg;}
+function parseFen(f){const map={};f.split(" ")[0].split("/").forEach((row,i)=>{let file=0;for(const ch of row){if(/\d/.test(ch))file+=Number(ch);else{map[FILES[file]+(8-i)]=ch;file++;}}});return map;}
+function isHumanPiece(p){return p&&(humanColor==="white"?p===p.toUpperCase():p===p.toLowerCase());}
+function tone(freq,duration,type="sine",volume=.045,delay=0){if(!soundOn)return;try{audioCtx=audioCtx||new(window.AudioContext||window.webkitAudioContext)();if(audioCtx.state==="suspended")audioCtx.resume();const osc=audioCtx.createOscillator(),gain=audioCtx.createGain();osc.type=type;osc.frequency.setValueAtTime(freq,audioCtx.currentTime+delay);gain.gain.setValueAtTime(volume,audioCtx.currentTime+delay);gain.gain.exponentialRampToValueAtTime(.001,audioCtx.currentTime+delay+duration);osc.connect(gain);gain.connect(audioCtx.destination);osc.start(audioCtx.currentTime+delay);osc.stop(audioCtx.currentTime+delay+duration);}catch(_){}}
+function playSound(kind){if(kind==="capture"){tone(180,.11,"triangle",.07);tone(110,.16,"sine",.05,.05);}else if(kind==="bot"){tone(520,.07,"sine",.035);tone(390,.1,"sine",.03,.06);}else{tone(360,.06,"triangle",.04);tone(470,.07,"triangle",.03,.045);}}
+function coordMove(uci){if(!uci||uci.length<4)return null;return{who:uci, text:uci.slice(0,2)+" → "+uci.slice(2,4)+(uci[4]?" = "+uci[4].toUpperCase():"")};}
+function addMove(uci){const entry=coordMove(uci);if(entry)moveHistory.push(entry);renderLog();}
+function renderLog(){if(!moveHistory.length){moveLogEl.innerHTML='<p style="font-size:.82rem;margin:0">No moves yet. Your opening move starts the story.</p>';return;}moveLogEl.innerHTML="";for(let i=0;i<moveHistory.length;i+=2){const row=document.createElement("div");row.className="move-row";const num=document.createElement("span");num.className="move-num";num.textContent=String(Math.floor(i/2)+1)+".";const white=document.createElement("span");white.className="move-cell";white.textContent=moveHistory[i]?moveHistory[i].text:"—";const black=document.createElement("span");black.className="move-cell";black.textContent=moveHistory[i+1]?moveHistory[i+1].text:"…";if(i===moveHistory.length-1)white.classList.add("latest");if(i+1===moveHistory.length-1)black.classList.add("latest");row.append(num,white,black);moveLogEl.appendChild(row);}moveLogEl.scrollTop=moveLogEl.scrollHeight;}
+function render(){const pieces=parseFen(fen);boardEl.innerHTML="";const ranks=humanColor==="white"?[8,7,6,5,4,3,2,1]:[1,2,3,4,5,6,7,8],files=humanColor==="white"?[...FILES]:[...FILES].reverse();for(const rank of ranks)for(const file of files){const name=file+rank,div=document.createElement("div");div.className="sq "+(((FILES.indexOf(file)+rank)%2===0)?"d":"l");div.setAttribute("role","gridcell");div.setAttribute("aria-label",name+(pieces[name]?" piece":""));if(name===selected)div.classList.add("sel");if(targets.includes(name))div.classList.add("target");if(lastMoves.includes(name))div.classList.add("last");if(pieces[name]){const span=document.createElement("span");span.className="piece-chess "+(pieces[name]===pieces[name].toUpperCase()?"white-piece":"black-piece");span.textContent=GLYPH[pieces[name]];div.appendChild(span);}div.onclick=()=>onSquare(name,pieces);boardEl.appendChild(div);}}
+async function post(url,body){const res=await fetch(url,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(body)});const data=await res.json();if(!res.ok)throw new Error(data.error||"Request failed");return data;}
+async function onSquare(name,pieces){if(over)return;if(selected&&targets.includes(name)){const piece=pieces[selected],captured=Boolean(pieces[name])||(piece&&piece.toLowerCase()==="p"&&selected[0]!==name[0]&&!pieces[name]),body={fen:fen,from:selected,to:name};if(piece&&piece.toLowerCase()==="p"&&(name[1]==="8"||name[1]==="1"))body.promotion="q";const humanUci=selected+name+(body.promotion||"");selected=null;targets=[];setStatus("Opponent is thinking…");try{const data=await post("/api/chess/move",body);fen=data.fen;lastMoves=[humanUci.slice(0,2),humanUci.slice(2,4)];addMove(humanUci);playSound(captured?"capture":"move");if(data.bot_move){addMove(data.bot_move);lastMoves=[data.bot_move.slice(0,2),data.bot_move.slice(2,4)];playSound("bot");}over=data.game_over;if(over)setStatus("Game over: "+data.result);else setStatus(data.in_check?"Check! Your move.":"Your move.");}catch(e){setStatus(e.message,true);}render();return;}if(isHumanPiece(pieces[name])){selected=name;try{targets=(await post("/api/chess/legal",{fen:fen,from:name})).targets;setStatus("Choose a highlighted square.");}catch(e){targets=[];setStatus(e.message,true);}}else{selected=null;targets=[];}render();}
+async function newGame(){humanColor=sideChoice.value;fen=START_FEN;selected=null;targets=[];lastMoves=[];over=false;moveHistory=[];humanLabel.textContent="You · "+(humanColor==="white"?"White":"Black");humanDot.className="player-dot "+humanColor;renderLog();render();setStatus(humanColor==="white"?"Your move.":"Bot opens as White…");if(humanColor==="black"){try{const data=await post("/api/chess/start",{fen:START_FEN});fen=data.fen;if(data.bot_move){addMove(data.bot_move);lastMoves=[data.bot_move.slice(0,2),data.bot_move.slice(2,4)];playSound("bot");}over=data.game_over;setStatus(over?"Game over: "+data.result:"Your move.");render();}catch(e){setStatus(e.message,true);}}}
+document.getElementById("new").onclick=()=>newGame();
+sideChoice.onchange=()=>newGame();
+document.getElementById("sound-toggle").onclick=()=>{soundOn=!soundOn;const b=document.getElementById("sound-toggle");b.textContent=soundOn?"♫ Sound on":"♪ Sound off";b.setAttribute("aria-pressed",String(soundOn));if(soundOn)tone(620,.08,"sine",.035);};
+setStatus("Your move.");render();renderLog();
 </script>
 {% endblock %}
