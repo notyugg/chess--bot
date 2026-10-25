@@ -136,7 +136,7 @@ function render() {
   const d2 = state.last_roll ? dieGlyph[state.last_roll[1]] : "⚁";
   center.innerHTML = phase === "over"
     ? "<div class='turn-label'>GAME COMPLETE</div><h2>" + state.winner + " wins!</h2><div class='dice-pair'><span class='die'>♛</span></div>"
-    : "<div class='turn-label'>YOUR NEXT MOVE</div><h3>" + state.current_name + "'s turn</h3><div class='dice-pair'><span class='die" + (state.last_roll ? " rolling" : "") + "'>" + d1 + "</span><span class='die" + (state.last_roll ? " rolling" : "") + "'>" + d2 + "</span></div><div class='roll-total'>" + (state.last_roll ? "Rolled " + state.last_roll[0] + " + " + state.last_roll[1] + " = " + (state.last_roll[0] + state.last_roll[1]) : "Roll to begin your turn") + "</div>";
+    : "<div class='turn-label'>" + (phase === "auction" ? "PROPERTY AUCTION" : "YOUR NEXT MOVE") + "</div><h3>" + state.current_name + "'s turn</h3><div class='dice-pair'><span class='die" + (state.last_roll ? " rolling" : "") + "'>" + d1 + "</span><span class='die" + (state.last_roll ? " rolling" : "") + "'>" + d2 + "</span></div><div class='roll-total'>" + (phase === "auction" && state.auction ? "Bidding on " + BOARD[state.auction.property].name + " · current bid " + state.auction.bid : (state.last_roll ? "Rolled " + state.last_roll[0] + " + " + state.last_roll[1] + " = " + (state.last_roll[0] + state.last_roll[1]) : "Roll to begin your turn")) + "</div>";
 
   const actions = document.createElement("div");
   actions.className = "actions";
@@ -173,7 +173,7 @@ function render() {
     d.className = "player" + (idx === state.current ? " current" : "") + (p.bankrupt ? " bankrupt" : "");
     d.style.borderLeftColor = TOKEN_COLORS[idx];
     const props = p.properties.map(i => BOARD[i].name).join(", ") || "none";
-    d.innerHTML = `<b>${p.name}</b>${p.in_jail ? " (in jail)" : ""}<br>Cash: ${p.cash}<br><small>Owns: ${props}</small>`;
+    d.innerHTML = `<b>${p.name}</b>${p.in_jail ? " (in jail)" : ""}<br>Cash: ${p.cash}<br>Loan: ${p.loan || 0} · Net worth: ${p.net_worth || 0}<br><small>Owns: ${props}</small>`;
     side.appendChild(d);
   });
 
@@ -185,7 +185,7 @@ function render() {
     "<br><small>Interest: 10% per turn · Net worth: " + (cur.net_worth || 0) + "</small></p><p class='finance-owned'><small>" + propList + "</small></p>";
   const addFinanceBtn = (label, handler, secondary = true) => {
     const b = document.createElement("button"); b.textContent = label; if (secondary) b.className = "secondary";
-    b.onclick = handler; finance.appendChild(b);
+    b.disabled = state.phase !== "roll"; b.onclick = handler; finance.appendChild(b);
   };
   const chooseSquare = (indices, promptText) => {
     if (!indices.length) { setStatus("You have no eligible properties.", true); return null; }
