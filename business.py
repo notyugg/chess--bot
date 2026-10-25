@@ -127,7 +127,7 @@ class Player:
             "loan": self.loan,
             "mortgaged": sorted(self.mortgaged),
             "buildings": {str(k): v for k, v in self.buildings.items()},
-            "net_worth": self.cash + sum(BOARD[i]["price"] // 2 for i in self.properties) + sum(BUILD_COST.get(BOARD[i].get("color"), 50) * n // 2 for i, n in self.buildings.items()) - self.loan,
+            "net_worth": self.cash + sum(BOARD[i]["price"] for i in self.properties) - sum(BOARD[i]["price"] // 2 for i in self.mortgaged) + sum(BUILD_COST.get(BOARD[i].get("color"), 50) * n // 2 for i, n in self.buildings.items()) - self.loan,
         }
 
 
