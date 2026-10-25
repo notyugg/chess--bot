@@ -205,6 +205,7 @@ class Game:
             else:
                 self.owners[sq] = creditor_idx
                 if sq not in to.properties: to.properties.append(sq)
+                if sq in p.mortgaged and sq not in to.mortgaged: to.mortgaged.append(sq)
         p.properties = []
         p.mortgaged = []
         p.buildings = {}
@@ -493,6 +494,7 @@ class Game:
         if p.cash < give_cash or other.cash < take_cash: raise ValueError("A player cannot afford the cash part.")
         if any(i not in p.properties for i in give_properties): raise ValueError("You can only offer properties you own.")
         if any(i not in other.properties for i in take_properties): raise ValueError("You can only request properties they own.")
+        if len(set(give_properties)) != len(give_properties) or len(set(take_properties)) != len(take_properties): raise ValueError("A property can only appear once in a trade.")
         if any(p.buildings.get(i,0) or other.buildings.get(i,0) for i in give_properties + take_properties): raise ValueError("Sell buildings before trading those properties.")
         for i in give_properties:
             p.properties.remove(i); other.properties.append(i); self.owners[i]=target
