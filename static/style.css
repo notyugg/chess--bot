@@ -134,3 +134,25 @@ footer { border-top: 1px solid var(--line); padding: 20px 0 0; margin-top: 48px;
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { scroll-behavior: auto !important; transition-duration: .01ms !important; animation-duration: .01ms !important; }
 }
+/* Game-specific accents and page rhythm */
+.page-chess_page { --page-accent: var(--indigo); }
+.page-checkers_page { --page-accent: var(--red); }
+.page-business_page { --page-accent: var(--turmeric); }
+.page-chess_page main > h1, .page-checkers_page main > h1, .page-business_page main > h1 {
+  font-family: 'Yatra One', Georgia, serif; font-weight: 400;
+  font-size: clamp(2.8rem, 6vw, 4.5rem); margin-bottom: 10px;
+}
+.page-chess_page main > h1::before, .page-checkers_page main > h1::before, .page-business_page main > h1::before {
+  content: 'THE GAME / '; display: block; color: var(--page-accent);
+  font-family: 'Schibsted Grotesk', sans-serif; font-size: .7rem; font-weight: 800;
+  letter-spacing: .17em; margin-bottom: 13px;
+}
+.page-chess_page main > p, .page-checkers_page main > p { max-width: 600px; margin-bottom: 24px; line-height: 1.8; }
+.page-chess_page #new, .page-checkers_page #new { margin-top: 4px; }
+.page-business_page #start { background: var(--ink); color: var(--turmeric); }
+.page-business_page .cell { border-radius: 2px; }
+@media (max-width: 520px) {
+  .page-business_page #setup { padding: 14px; }
+  .page-business_page #names { width: 100%; }
+  footer span { float: none !important; display: block; margin-top: 6px; }
+}
