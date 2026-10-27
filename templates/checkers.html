@@ -6,6 +6,17 @@
 <div id="board" class="board"></div>
 <div id="status" class="status"></div>
 <button id="new" class="secondary">New game</button>
+
+<dialog id="result-popup" aria-labelledby="result-title" style="border:1px solid rgba(243,234,214,.25);border-radius:18px;padding:28px;max-width:min(90vw,420px);background:#1b1e3b;color:#f3ead6;box-shadow:0 22px 60px rgba(5,6,22,.5);text-align:center;">
+  <div style="font-size:2.5rem;margin-bottom:8px" aria-hidden="true" id="result-icon">🏁</div>
+  <h2 id="result-title" style="margin-bottom:8px">Game over</h2>
+  <p id="result-message" style="margin-bottom:22px">The game has ended.</p>
+  <button id="play-again">Play again</button>
+  <button id="close-result" class="secondary" style="margin-left:6px">Close</button>
+</dialog>
+<style>
+  #result-popup::backdrop { background:rgba(5,6,22,.72); backdrop-filter:blur(5px); }
+</style>
 {% endblock %}
 
 {% block scripts %}
@@ -18,15 +29,32 @@ let over = false;
 
 const boardEl = document.getElementById("board");
 const statusEl = document.getElementById("status");
+const resultPopup = document.getElementById("result-popup");
+const resultTitle = document.getElementById("result-title");
+const resultMessage = document.getElementById("result-message");
+const resultIcon = document.getElementById("result-icon");
 
 function setStatus(msg, isError = false) {
   statusEl.textContent = msg;
   statusEl.className = "status" + (isError ? " error" : "");
 }
 
+function showResult(winner) {
+  if (winner === "black") {
+    resultTitle.textContent = "AI Wins!";
+    resultMessage.textContent = "The AI has won this round. Better luck next time!";
+    resultIcon.textContent = "🤖";
+  } else {
+    resultTitle.textContent = "You Win!";
+    resultMessage.textContent = "Great game — you beat the AI!";
+    resultIcon.textContent = "🏆";
+  }
+  if (!resultPopup.open) resultPopup.showModal();
+}
+
 const same = (a, b) => a[0] === b[0] && a[1] === b[1];
 
-// moves that start at `selected`
+// moves that start at selected
 const movesFromSelected = () => selected ? moves.filter(m => same(m.path[0], selected)) : [];
 
 function render() {
@@ -59,7 +87,7 @@ async function onSquare(r, c) {
   const chosen = movesFromSelected().find(m => same(m.path[m.path.length - 1], [r, c]));
   if (chosen) {
     selected = null;
-    setStatus("Bot is thinking...");
+    setStatus("AI is thinking...");
     try {
       const res = await fetch("/api/checkers/move", {
         method: "POST",
@@ -73,7 +101,8 @@ async function onSquare(r, c) {
       lastBot = data.bot_move ? [data.bot_move.path[0], data.bot_move.path[data.bot_move.path.length - 1]] : [];
       if (data.winner) {
         over = true;
-        setStatus(data.winner === "red" ? "You win!" : "Bot wins.");
+        setStatus(data.winner === "red" ? "You win!" : "AI wins.");
+        showResult(data.winner);
       } else {
         setStatus(moves[0].captured.length ? "Your move (you must capture)." : "Your move.");
       }
@@ -97,6 +126,11 @@ async function newGame() {
 }
 
 document.getElementById("new").onclick = newGame;
+document.getElementById("play-again").onclick = async () => {
+  resultPopup.close();
+  await newGame();
+};
+document.getElementById("close-result").onclick = () => resultPopup.close();
 newGame();
 </script>
 {% endblock %}
