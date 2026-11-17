@@ -214,23 +214,5 @@ def business_end_turn():
 def business_pay_fine():
     return business_action("pay_jail_fine")
 
-@app.route("/api/business/<action>", methods=["POST"])
-def business_extended_action(action):
-    """Trade actions with optional JSON arguments."""
-    if not need_game():
-        return error("No game yet. Start a game first.", 404)
-    allowed = {"trade"}
-    if action not in allowed:
-        return error("Unknown Business action.")
-    data = request.get_json(silent=True) or {}
-    try:
-        result = getattr(game, action)(**data)
-    except TypeError:
-        return error("Invalid action arguments.")
-    except ValueError as e:
-        return error(str(e))
-    return jsonify(result if result is not None else game.state())
-
-
 if __name__ == "__main__":
     app.run(debug=True)
