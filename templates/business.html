@@ -7,8 +7,7 @@
   <div class="business-rules">
     <strong>How to build your empire</strong>
     <span>Buy cities and grow your property portfolio.</span>
-    <span>Passing on an unowned property starts an auction. Properties do not generate rent.</span>
-    <span>Trade property and cash, watch your net worth, and avoid bankruptcy. Last solvent player wins.</span>
+      <span>Trade property and cash, watch your net worth, and avoid bankruptcy. Last solvent player wins.</span>
   </div>
   <p>Enter 2 to 6 player names (comma separated):</p>
   <input id="names" value="Player 1, Player 2" size="40">
@@ -141,7 +140,7 @@ function render() {
   const d2 = state.last_roll ? dieGlyph[state.last_roll[1]] : "⚁";
   center.innerHTML = phase === "over"
     ? "<div class='turn-label'>GAME COMPLETE</div><h2>" + state.winner + " wins!</h2><div class='dice-pair'><span class='die'>♛</span></div>"
-    : "<div class='turn-label'>" + (phase === "auction" ? "PROPERTY AUCTION" : "YOUR NEXT MOVE") + "</div><h3>" + state.current_name + "'s turn</h3><div class='dice-pair'><span class='die" + (state.last_roll ? " rolling" : "") + "'>" + d1 + "</span><span class='die" + (state.last_roll ? " rolling" : "") + "'>" + d2 + "</span></div><div class='roll-total'>" + (phase === "auction" && state.auction ? "Bidding on " + BOARD[state.auction.property].name + " · current bid " + state.auction.bid : (state.last_roll ? "Rolled " + state.last_roll[0] + " + " + state.last_roll[1] + " = " + (state.last_roll[0] + state.last_roll[1]) : "Roll to begin your turn")) + "</div>";
+    : "<div class='turn-label'>YOUR NEXT MOVE</div><h3>" + state.current_name + "'s turn</h3><div class='dice-pair'><span class='die" + (state.last_roll ? " rolling" : "") + "'>" + d1 + "</span><span class='die" + (state.last_roll ? " rolling" : "") + "'>" + d2 + "</span></div><div class='roll-total'>" + (state.last_roll ? "Rolled " + state.last_roll[0] + " + " + state.last_roll[1] + " = " + (state.last_roll[0] + state.last_roll[1]) : "Roll to begin your turn") + "</div>";
 
   const actions = document.createElement("div");
   actions.className = "actions";
@@ -155,13 +154,8 @@ function render() {
   };
   addBtn("Roll dice", "roll", phase === "roll");
   addBtn("Buy", "buy", phase === "buy");
-  addBtn("Skip", "skip", phase === "buy", true);
   addBtn("End turn", "end_turn", phase === "end_turn");
   if (phase === "roll" && cur.in_jail) addBtn("Pay 50 to leave jail", "pay_fine", true, true);
-  if (phase === "auction" && state.auction) {
-    addBtn("Bid " + (state.auction.bid + 10), "auction_bid", true, false, {amount: state.auction.bid + 10});
-    addBtn("Pass auction", "auction_pass", true, true);
-  }
   center.appendChild(actions);
 
   const log = document.createElement("div");
