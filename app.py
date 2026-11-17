@@ -205,11 +205,6 @@ def business_buy():
     return business_action("buy")
 
 
-@app.route("/api/business/skip", methods=["POST"])
-def business_skip():
-    return business_action("skip_buy")
-
-
 @app.route("/api/business/end_turn", methods=["POST"])
 def business_end_turn():
     return business_action("end_turn")
@@ -221,10 +216,10 @@ def business_pay_fine():
 
 @app.route("/api/business/<action>", methods=["POST"])
 def business_extended_action(action):
-    """Trade and auction actions with optional JSON arguments."""
+    """Trade actions with optional JSON arguments."""
     if not need_game():
         return error("No game yet. Start a game first.", 404)
-    allowed = {"trade", "auction_bid", "auction_pass"}
+    allowed = {"trade"}
     if action not in allowed:
         return error("Unknown Business action.")
     data = request.get_json(silent=True) or {}
