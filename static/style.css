@@ -427,3 +427,41 @@ footer { color:#77739b; border-color:rgba(81,70,200,.22); }
   .card { min-height:260px; }
   nav { box-shadow:0 3px 0 rgba(255,255,255,.9),0 5px 14px rgba(42,35,95,.12); }
 }
+
+
+/* Full Y2K computer-interface x vaporwave arcade theme */
+:root{color-scheme:dark;--ink:#100d27;--ink-soft:#211744;--ivory:#eeeaff;--paper:#21183e;--muted:#b8aedc;--line:rgba(151,132,255,.38);--indigo:#8c72ff;--red:#ff4fa3;--turmeric:#39e5f2;--green:#5df0bd;--shadow:0 22px 55px rgba(3,2,18,.5)}
+html,body{min-height:100%;background-color:#100d27}
+body{color:#eeeaff!important;background:linear-gradient(rgba(117,91,220,.055) 1px,transparent 1px),linear-gradient(90deg,rgba(117,91,220,.055) 1px,transparent 1px),radial-gradient(ellipse at 50% 0%,rgba(112,57,208,.38),transparent 48rem),radial-gradient(ellipse at 90% 55%,rgba(0,205,232,.13),transparent 34rem),radial-gradient(ellipse at 5% 80%,rgba(255,47,151,.15),transparent 30rem),#100d27!important;background-size:32px 32px,32px 32px,auto,auto,auto,auto;background-attachment:fixed}
+nav{background:linear-gradient(180deg,#433677,#1f1843)!important;border-bottom:1px solid #9d8cff!important;box-shadow:0 2px 0 #ffffff22,0 8px 28px #0006}
+nav a{color:#c5b9ed!important}nav a:hover,nav a:focus-visible{color:#fff!important;background:linear-gradient(#7058b8,#443477)!important;box-shadow:0 0 13px #39e5f238}
+nav .brand{color:#fff!important;text-shadow:0 0 12px #39e5f277}.brand-mark{color:#ff4fa3!important}
+h1,h2,h3{color:#f4efff!important}h1{text-shadow:0 0 18px #976fff55,2px 3px #0004}p,.hero-copy{color:#b8aedc!important}
+.eyebrow{color:#43e6f2!important;text-shadow:0 0 10px #39e5f288}.hero h1 span{color:#ff5eae!important;text-shadow:0 0 18px #ff4fa377}
+.section-heading{border-color:#9784ff55!important}.section-heading p{color:#a99dce!important}
+.card{color:#f3efff!important;border:1px solid #7664c4!important;border-radius:7px!important;background:linear-gradient(135deg,#8b68ff30,transparent 58%),linear-gradient(155deg,#302451,#191432 75%)!important;box-shadow:inset 1px 1px #ffffff2e,inset -1px -1px #0007,0 9px #07051973,0 18px 35px #0004!important}
+.card:nth-child(2){--game:#ff4fa3;--wash:#ff4fa32b}.card:nth-child(3){--game:#39e5f2;--wash:#39e5f226}
+.card:hover,.card:focus-visible{border-color:var(--game)!important;background:linear-gradient(135deg,var(--wash),transparent 65%),linear-gradient(155deg,#3a2a62,#191432 78%)!important;box-shadow:0 0 25px color-mix(in srgb,var(--game),transparent 65%)!important}
+.card h2{color:#fff!important}.card p{color:#b8aedc!important}.game-number,.card-link{color:var(--game)!important;text-shadow:0 0 12px var(--game)}
+.game-symbol{color:var(--game)!important;background:linear-gradient(145deg,#49366f,#21183e)!important;border:1px solid var(--game)!important;box-shadow:0 0 15px color-mix(in srgb,var(--game),transparent 75%)}
+.page-tag{color:#d8ceff!important;background:linear-gradient(#49366f,#241b45)!important;border:1px solid #927fe0!important}
+button{color:#fff!important;background:linear-gradient(#9a72ff,#6042c7)!important;border:1px solid #c0a8ff!important;border-radius:4px!important;box-shadow:inset 1px 1px #ffffff70,0 3px #35236f,0 0 14px #8c72ff33!important}
+button:hover:not(:disabled){filter:brightness(1.16);box-shadow:0 3px #35236f,0 0 20px #39e5f24d!important}
+button.secondary{color:#dcd4ff!important;background:linear-gradient(#443568,#251b45)!important;border-color:#7867b5!important}
+input,select,.chess-options select{color:#f2edff!important;background:linear-gradient(#17112f,#241a43)!important;border:1px solid #7968bd!important}
+input::placeholder{color:#9386bc!important}.chess-options label{color:#c1b6e5!important}.chess-options option{color:#eeeaff;background:#21183e}
+.status{color:#b8aedc!important}.status.error{color:#ff86bd!important}
+#setup,.page-business_page #setup,.chess-stage,.chess-panel,.page-business_page .business-rules,.page-business_page .finance-panel{color:#eeeaff!important;background:linear-gradient(145deg,#332653,#1b1537)!important;border:1px solid #7968bd!important;border-radius:6px!important;box-shadow:inset 1px 1px #ffffff24,0 10px 25px #0004!important}
+#setup p,.business-rules,.finance-panel p{color:#c0b5e3!important}.chess-panel h2,.business-rules strong,.finance-panel h3{color:#fff!important}
+.move-row,.move-row:nth-child(even){background:#8b72ff21!important}.move-num{color:#9e92c8!important}.move-cell{color:#eeeaff!important}.move-cell.latest{color:#43e6f2!important}
+#board{border:7px solid #40316f!important;border-radius:5px;box-shadow:0 0 0 1px #a38cf7,0 0 24px #845eff4d,0 18px 42px #0007!important}
+#board .sq.l{background:#c9c2ed!important}#board .sq.d{background:#51427f!important}#board .sq.sel{outline:4px solid #ff4fa3!important;box-shadow:0 0 16px #ff4fa3a6!important}#board .sq.target:after{background:#39e5f2!important;box-shadow:0 0 13px #39e5f2!important}
+.player,.page-business_page .player{color:#f0eaff!important;background:linear-gradient(145deg,#382a5c,#20183e)!important;border:1px solid #7664bd!important;border-left:5px solid #39e5f2!important;box-shadow:inset 1px 1px #ffffff20,0 5px 13px #0004!important}
+.player small{color:#b8aedc!important}.player.current,.page-business_page .player.current{outline:2px solid #ff4fa3!important;background:linear-gradient(145deg,#4a2b67,#28183f)!important}
+.page-business_page .mono{background:linear-gradient(145deg,#54417f,#21183e)!important;border:2px solid #9a83ec!important;box-shadow:0 0 0 2px #39e5f233,0 0 26px #7e5cff40,0 20px 48px #0007!important}
+.page-business_page .cell{color:#eeeaff!important;background:linear-gradient(145deg,#352653,#21183e)!important;border:1px solid #9784ff40!important;box-shadow:inset 0 0 0 1px #ffffff09!important}
+.page-business_page .cell .own{color:#39e5f2!important;text-shadow:0 0 8px #39e5f266}
+.page-business_page .center{background:linear-gradient(#a18cff14 1px,transparent 1px),linear-gradient(90deg,#a18cff14 1px,transparent 1px),radial-gradient(ellipse at 50% 0%,#39e5f238,transparent 70%),linear-gradient(145deg,#21153f,#100d27)!important;background-size:18px 18px,18px 18px,auto,auto!important;border:1px solid #9a83ec!important;box-shadow:inset 0 0 0 1px #ffffff1c,0 0 22px #7e5cff44!important}
+.page-business_page .center h2,.page-business_page .center h3{color:#fff!important;text-shadow:0 0 12px #39e5f288}.page-business_page .center .turn-label{color:#55e7f1!important}.page-business_page .center .die{color:#302052!important;background:linear-gradient(145deg,#eeeaff,#aaa0d8)!important}.page-business_page .center .roll-total{color:#ff78c4!important}.page-business_page .center .log{color:#d2d0f2!important;border-color:#ffffff33!important}
+.page-business_page .center .actions button{background:linear-gradient(#ff65b1,#c92b86)!important}.page-business_page .center .actions button.secondary{color:#eeeaff!important;background:linear-gradient(#443568,#251b45)!important}
+footer{color:#a99bcf!important;border-color:#9784ff44!important}
