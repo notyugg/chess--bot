@@ -12,12 +12,11 @@ GO_SALARY = 200
 JAIL_POS = 10
 JAIL_FINE = 50
 BOARD_SIZE = 40
-BUILD_COST = {"brown": 50, "lightblue": 50, "pink": 100, "orange": 100, "red": 150, "yellow": 150, "green": 200, "blue": 200}
 
 
 # ---------------------------------------------------------------- board ----
-def _prop(name, color, price, rent):
-    return {"type": "property", "name": name, "color": color, "price": price, "rent": rent}
+def _prop(name, color, price):
+    return {"type": "property", "name": name, "color": color, "price": price}
 
 
 def _rail(name):
@@ -34,45 +33,45 @@ def _other(kind, name, amount=0):
 
 BOARD = [
     _other("go", "GO"),                                  # 0
-    _prop("Old Delhi", "brown", 60, 4),                  # 1
+    _prop("Old Delhi", "brown", 60),                  # 1
     _other("chance", "Chance"),                          # 2
-    _prop("Chandni Chowk", "brown", 60, 8),              # 3
+    _prop("Chandni Chowk", "brown", 60),              # 3
     _other("tax", "Income Tax", 200),                    # 4
     _rail("Delhi Junction"),                             # 5
-    _prop("Kochi", "lightblue", 100, 6),                 # 6
+    _prop("Kochi", "lightblue", 100),                 # 6
     _other("chance", "Chance"),                          # 7
-    _prop("Goa", "lightblue", 100, 6),                   # 8
-    _prop("Pune", "lightblue", 120, 8),                  # 9
+    _prop("Goa", "lightblue", 100),                   # 8
+    _prop("Pune", "lightblue", 120),                  # 9
     _other("jail", "Jail / Just Visiting"),              # 10
-    _prop("Jaipur", "pink", 140, 10),                    # 11
+    _prop("Jaipur", "pink", 140),                    # 11
     _util("Electric Company"),                           # 12
-    _prop("Udaipur", "pink", 140, 10),                   # 13
-    _prop("Jodhpur", "pink", 160, 12),                   # 14
+    _prop("Udaipur", "pink", 140),                   # 13
+    _prop("Jodhpur", "pink", 160),                   # 14
     _rail("Mumbai Central"),                             # 15
-    _prop("Lucknow", "orange", 180, 14),                 # 16
+    _prop("Lucknow", "orange", 180),                 # 16
     _other("chance", "Chance"),                          # 17
-    _prop("Kanpur", "orange", 180, 14),                  # 18
-    _prop("Varanasi", "orange", 200, 16),                # 19
+    _prop("Kanpur", "orange", 180),                  # 18
+    _prop("Varanasi", "orange", 200),                # 19
     _other("parking", "Free Parking"),                   # 20
-    _prop("Chennai", "red", 220, 18),                    # 21
+    _prop("Chennai", "red", 220),                    # 21
     _other("chance", "Chance"),                          # 22
-    _prop("Hyderabad", "red", 220, 18),                  # 23
-    _prop("Bengaluru", "red", 240, 20),                  # 24
+    _prop("Hyderabad", "red", 220),                  # 23
+    _prop("Bengaluru", "red", 240),                  # 24
     _rail("Howrah"),                                     # 25
-    _prop("Kolkata", "yellow", 260, 22),                 # 26
-    _prop("Ahmedabad", "yellow", 260, 22),               # 27
+    _prop("Kolkata", "yellow", 260),                 # 26
+    _prop("Ahmedabad", "yellow", 260),               # 27
     _util("Water Works"),                                # 28
-    _prop("Surat", "yellow", 280, 24),                   # 29
+    _prop("Surat", "yellow", 280),                   # 29
     _other("gotojail", "Go To Jail"),                    # 30
-    _prop("Chandigarh", "green", 300, 26),               # 31
-    _prop("Gurugram", "green", 300, 26),                 # 32
+    _prop("Chandigarh", "green", 300),               # 31
+    _prop("Gurugram", "green", 300),                 # 32
     _other("chance", "Chance"),                          # 33
-    _prop("Noida", "green", 320, 28),                    # 34
+    _prop("Noida", "green", 320),                    # 34
     _rail("Chennai Central"),                            # 35
     _other("chance", "Chance"),                          # 36
-    _prop("Mumbai", "blue", 350, 35),                    # 37
+    _prop("Mumbai", "blue", 350),                    # 37
     _other("tax", "Luxury Tax", 100),                    # 38
-    _prop("Delhi", "blue", 400, 50),                     # 39
+    _prop("Delhi", "blue", 400),                     # 39
 ]
 
 # (text, action, value)
@@ -87,9 +86,7 @@ CHANCE_CARDS = [
     ("Birthday! Collect 20 from every player.", "birthday", 20),
     ("Bank error in your favour. Collect 150.", "collect", 150),
     ("You receive a city development grant. Collect 100.", "collect", 100),
-    ("Pay 25 for each house and 100 for each hotel.", "repairs", 0),
     ("Pay each opponent 50 for a neighbourhood celebration.", "per_player", 50),
-    ("Collect 25 for each house and 100 for each hotel you own.", "building_income", 0),
     ("Unexpected legal fees. Pay 75.", "pay", 75),
 ]
 
@@ -109,7 +106,6 @@ class Player:
         self.jail_turns = 0
         self.properties = []
         self.bankrupt = False
-        self.buildings = {}
 
     def to_dict(self):
         return {
@@ -119,8 +115,7 @@ class Player:
             "in_jail": self.in_jail,
             "properties": sorted(self.properties),
             "bankrupt": self.bankrupt,
-            "buildings": {str(k): v for k, v in self.buildings.items()},
-            "net_worth": self.cash + sum(BOARD[i]["price"] for i in self.properties) + sum(BUILD_COST.get(BOARD[i].get("color"), 50) * n // 2 for i, n in self.buildings.items()),
+            "net_worth": self.cash + sum(BOARD[i]["price"] for i in self.properties),
         }
 
 
@@ -207,25 +202,6 @@ class Game:
             self.phase = "over"
             self._log(f"{self.winner} wins the game!")
 
-    def _rent(self, sq_index, dice_total):
-        sq = BOARD[sq_index]
-        owner = self.players[self.owners[sq_index]]
-        if sq["type"] == "property":
-            houses = owner.buildings.get(sq_index, 0)
-            if houses:
-                return sq["rent"] * [1, 5, 15, 45, 80, 125][min(houses, 5)]
-            rent = sq["rent"]
-            group = color_group(sq["color"])
-            if all(self.owners.get(i) == self.owners[sq_index] for i in group):
-                rent *= 2                    # full colour set
-            return rent
-        if sq["type"] == "railroad":
-            count = sum(1 for i in owner.properties if BOARD[i]["type"] == "railroad")
-            return 25 * 2 ** (count - 1)
-        # utility
-        count = sum(1 for i in owner.properties if BOARD[i]["type"] == "utility")
-        return dice_total * (10 if count == 2 else 4)
-
     # ---- landing logic ----
     def _land(self, dice_total):
         p = self.player
@@ -242,10 +218,6 @@ class Game:
                 else:
                     self._log(f"{p.name} landed on {sq['name']} but cannot afford it.")
             elif self.owners[idx] != self.current:
-                owner = self.players[self.owners[idx]]
-                rent = self._rent(idx, dice_total)
-                self._log(f"{p.name} pays {rent} rent to {owner.name} for {sq['name']}.")
-                self._pay(rent, owner)
         elif kind == "tax":
             self._log(f"{p.name} pays {sq['name']} of {sq['amount']}.")
             self._pay(sq["amount"])
@@ -277,14 +249,6 @@ class Game:
             for other in self.players:
                 if other is not p and not other.bankrupt and not p.bankrupt:
                     self._pay(value, other)
-        elif action == "repairs":
-            total = sum((100 if n == 5 else 25 * n) for n in p.buildings.values())
-            self._log(f"{p.name} pays {total} in building repairs.")
-            self._pay(total)
-        elif action == "building_income":
-            total = sum((100 if n == 5 else 25 * n) for n in p.buildings.values())
-            p.cash += total
-            self._log(f"{p.name} collects {total} from property improvements.")
 
     # ---- public actions (one per API route) ----
     def pay_jail_fine(self):
@@ -383,39 +347,6 @@ class Game:
 
     # ---- serialisation ----
 
-    def build(self, square):
-        self._check_phase("roll"); p = self.player
-        try: square = int(square)
-        except (TypeError, ValueError): raise ValueError("Choose a valid property.")
-        if square not in p.properties: raise ValueError("You do not own that property.")
-        sq = BOARD[square]
-        if sq.get("type") != "property": raise ValueError("You cannot build there.")
-        group = color_group(sq["color"])
-        if not group or not all(self.owners.get(i) == self.current for i in group): raise ValueError("Own the full colour group to build.")
-        level = p.buildings.get(square, 0)
-        if level >= 5: raise ValueError("This property already has a hotel.")
-        if level > min(p.buildings.get(i, 0) for i in group): raise ValueError("Buildings must be spread evenly across the group.")
-        cost = BUILD_COST[sq["color"]]
-        if p.cash < cost: raise ValueError(f"You need {cost} to build.")
-        p.cash -= cost; p.buildings[square] = level + 1
-        self._log(f"{p.name} built a {'hotel' if level == 4 else 'house'} on {sq['name']} for {cost}.")
-        return self.state()
-
-    def sell_building(self, square):
-        self._check_phase("roll"); p = self.player
-        try: square = int(square)
-        except (TypeError, ValueError): raise ValueError("Choose a valid property.")
-        level = p.buildings.get(square, 0)
-        if square not in p.properties or not level: raise ValueError("No building to sell there.")
-        group = color_group(BOARD[square].get("color"))
-        if level < max((p.buildings.get(i, 0) for i in group), default=0): raise ValueError("Sell buildings evenly across the group.")
-        value = BUILD_COST[BOARD[square]["color"]] // 2
-        p.cash += value
-        if level == 1: p.buildings.pop(square, None)
-        else: p.buildings[square] = level - 1
-        self._log(f"{p.name} sold a building on {BOARD[square]['name']} for {value}.")
-        return self.state()
-
     def trade(self, target, give_properties=None, take_properties=None, give_cash=0, take_cash=0):
         self._check_phase("roll")
         try:
@@ -430,7 +361,6 @@ class Game:
         if any(i not in p.properties for i in give_properties): raise ValueError("You can only offer properties you own.")
         if any(i not in other.properties for i in take_properties): raise ValueError("You can only request properties they own.")
         if len(set(give_properties)) != len(give_properties) or len(set(take_properties)) != len(take_properties): raise ValueError("A property can only appear once in a trade.")
-        if any(p.buildings.get(i,0) or other.buildings.get(i,0) for i in give_properties + take_properties): raise ValueError("Sell buildings before trading those properties.")
         for i in give_properties:
             p.properties.remove(i); other.properties.append(i); self.owners[i]=target
         for i in take_properties:
@@ -488,7 +418,6 @@ class Game:
             "log": self.log[-10:],
             "winner": self.winner,
             "auction": self.auction,
-            "board_assets": {str(i): {"buildings": self.players[o].buildings.get(i, 0)} for i, o in self.owners.items()},
         }
 
 
