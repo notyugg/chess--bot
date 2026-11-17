@@ -335,29 +335,6 @@ class Game:
 
     # ---- serialisation ----
 
-    def trade(self, target, give_properties=None, take_properties=None, give_cash=0, take_cash=0):
-        self._check_phase("roll")
-        try:
-            target=int(target); give_cash=int(give_cash); take_cash=int(take_cash)
-            give_properties=[int(x) for x in (give_properties or [])]; take_properties=[int(x) for x in (take_properties or [])]
-        except (TypeError, ValueError): raise ValueError("Trade details are invalid.")
-        if target < 0 or target >= len(self.players) or target == self.current: raise ValueError("Choose another player.")
-        p=self.player; other=self.players[target]
-        if other.bankrupt: raise ValueError("That player is bankrupt.")
-        if min(give_cash,take_cash) < 0: raise ValueError("Cash amounts cannot be negative.")
-        if p.cash < give_cash or other.cash < take_cash: raise ValueError("A player cannot afford the cash part.")
-        if any(i not in p.properties for i in give_properties): raise ValueError("You can only offer properties you own.")
-        if any(i not in other.properties for i in take_properties): raise ValueError("You can only request properties they own.")
-        if len(set(give_properties)) != len(give_properties) or len(set(take_properties)) != len(take_properties): raise ValueError("A property can only appear once in a trade.")
-        for i in give_properties:
-            p.properties.remove(i); other.properties.append(i); self.owners[i]=target
-        for i in take_properties:
-            other.properties.remove(i); p.properties.append(i); self.owners[i]=self.current
-        p.cash += take_cash-give_cash; other.cash += give_cash-take_cash
-        self._log(f"{p.name} completed a trade with {other.name}.")
-        return self.state()
-
-
     def state(self):
         return {
             "players": [p.to_dict() for p in self.players],
