@@ -7,7 +7,7 @@
   <div class="business-rules">
     <strong>How to build your empire</strong>
     <span>Buy cities and grow your property portfolio.</span>
-      <span>Trade property and cash, watch your net worth, and avoid bankruptcy. Last solvent player wins.</span>
+  <span>Watch your net worth, and avoid bankruptcy. Last solvent player wins.</span>
   </div>
   <p>Enter 2 to 6 player names (comma separated):</p>
   <input id="names" value="Player 1, Player 2" size="40">
@@ -185,32 +185,6 @@ function render() {
     const b = document.createElement("button"); b.textContent = label; if (secondary) b.className = "secondary";
     b.disabled = state.phase !== "roll"; b.onclick = handler; finance.appendChild(b);
   };
-  addFinanceBtn("Trade with player", () => {
-    const candidates = state.players.map((p, i) => i === state.current || p.bankrupt ? null : i + ": " + p.name + " (cash " + p.cash + ")").filter(Boolean).join("\n");
-    const targetRaw = prompt("Choose a player index:\n" + candidates);
-    if (targetRaw === null) return;
-    const target = Number(targetRaw.trim());
-    if (!Number.isInteger(target) || target === state.current || !state.players[target] || state.players[target].bankrupt) { setStatus("Invalid trade target.", true); return; }
-    const parseProps = (raw, list) => {
-      if (!raw.trim()) return [];
-      return raw.split(",").map(s => s.trim()).map(s => {
-        const n = Number(s);
-        if (Number.isInteger(n) && list.includes(n)) return n;
-        return list.find(i => BOARD[i].name.toLowerCase() === s.toLowerCase());
-      });
-    };
-    const giveRaw = prompt("Your properties to give (numbers, comma-separated):\n" + propList, "");
-    if (giveRaw === null) return;
-    const targetProps = state.players[target].properties || [];
-    const takeRaw = prompt("Their properties to receive (numbers, comma-separated):\n" + (targetProps.map(i => i + ": " + BOARD[i].name).join(" · ") || "None"), "");
-    if (takeRaw === null) return;
-    const give = parseProps(giveRaw, ownProps), take = parseProps(takeRaw, targetProps);
-    if (give.some(x => x === undefined) || take.some(x => x === undefined)) { setStatus("One of the property numbers is invalid.", true); return; }
-    const giveCash = Number(prompt("Cash you give:", "0") || 0), takeCash = Number(prompt("Cash you receive:", "0") || 0);
-    if (!Number.isFinite(giveCash) || !Number.isFinite(takeCash)) { setStatus("Cash amounts must be numbers.", true); return; }
-    if (!confirm("Confirm this trade with " + state.players[target].name + "?")) return;
-    act("trade", {target, give_properties: give, take_properties: take, give_cash: giveCash, take_cash: takeCash});
-  });
   side.appendChild(finance);
 }
 
