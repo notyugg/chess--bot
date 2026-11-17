@@ -1,0 +1,55 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1920" height="1080" viewBox="0 0 1920 1080">
+<defs>
+ <linearGradient id="bg" x2="0" y2="1"><stop stop-color="#21103f"/><stop offset=".52" stop-color="#45206f"/><stop offset="1" stop-color="#100d2c"/></linearGradient>
+ <linearGradient id="sun" x2="0" y2="1"><stop stop-color="#ff79c6"/><stop offset=".55" stop-color="#b65cff"/><stop offset="1" stop-color="#31d9ef"/></linearGradient>
+ <linearGradient id="panel" x2="0" y2="1"><stop stop-color="#d9d1ff"/><stop offset=".08" stop-color="#7655b5"/><stop offset="1" stop-color="#241744"/></linearGradient>
+ <pattern id="grid" width="48" height="48" patternUnits="userSpaceOnUse"><path d="M48 0H0V48" fill="none" stroke="#a58bff" stroke-opacity=".14" stroke-width="1"/></pattern>
+ <pattern id="scan" width="4" height="5" patternUnits="userSpaceOnUse"><path d="M0 4H4" stroke="#fff" stroke-opacity=".045"/></pattern>
+ <filter id="glow"><feGaussianBlur stdDeviation="12"/></filter>
+</defs>
+<rect width="1920" height="1080" fill="url(#bg)"/><rect width="1920" height="1080" fill="url(#grid)"/>
+<circle cx="1500" cy="360" r="250" fill="#f14ba8" opacity=".18" filter="url(#glow)"/>
+<circle cx="1500" cy="350" r="190" fill="url(#sun)" opacity=".95"/>
+<g stroke="#3b1c66" stroke-width="13" opacity=".8"><path d="M1305 290H1695M1310 345H1690M1330 400H1670M1360 455H1640"/></g>
+<path d="M0 690L280 600 520 700 770 625 1010 705 1280 620 1540 690 1920 580V1080H0Z" fill="#251347"/>
+<path d="M0 780L260 710 510 800 780 700 1050 810 1340 710 1600 790 1920 700V1080H0Z" fill="#160f32"/>
+<!-- perspective floor -->
+<path d="M0 770H1920V1080H0Z" fill="#130d2c"/>
+<g stroke="#ee5bc1" stroke-opacity=".42" stroke-width="2">
+ <path d="M960 760L-100 1080M960 760L100 1080M960 760L300 1080M960 760L500 1080M960 760L700 1080M960 760L900 1080M960 760L1100 1080M960 760L1300 1080M960 760L1500 1080M960 760L1700 1080M960 760L2020 1080"/>
+ <path d="M0 820H1920M0 875H1920M0 940H1920M0 1015H1920"/>
+</g>
+<!-- pixel skyline left -->
+<g fill="#39216c" stroke="#b77cff" stroke-opacity=".65" stroke-width="3">
+ <path d="M0 420H150V760H0ZM165 500H300V760H165ZM320 350H465V760H320ZM480 470H600V760H480ZM610 540H735V760H610Z"/>
+ <path d="M28 455h28v28H28m55 0h28v28H83M190 540h28v28h-28m60 0h28v28h-28M350 390h28v28h-28m55 0h28v28h-28M510 510h28v28h-28m48 0h28v28h-28" fill="#4be4f2"/>
+</g>
+<!-- arcade cabinet -->
+<g transform="translate(110 250)">
+ <rect x="0" y="0" width="270" height="500" rx="16" fill="#20123e" stroke="#ff69c5" stroke-width="8"/>
+ <rect x="18" y="18" width="234" height="280" rx="8" fill="#6d3fa6" stroke="#54e8f3" stroke-width="6"/>
+ <rect x="35" y="38" width="200" height="235" fill="#221144"/>
+ <circle cx="135" cy="135" r="78" fill="url(#sun)"/>
+ <path d="M45 170h180M45 194h180M45 218h180" stroke="#29124d" stroke-width="10"/>
+ <path d="M45 300H225L200 350H70Z" fill="#453078" stroke="#a58bff" stroke-width="5"/>
+ <circle cx="82" cy="390" r="18" fill="#ff5eb7"/><circle cx="140" cy="390" r="18" fill="#3be5f3"/><circle cx="198" cy="390" r="18" fill="#a58bff"/>
+ <rect x="75" y="445" width="120" height="22" rx="8" fill="#130d2c"/>
+</g>
+<!-- floating retro computer windows right -->
+<g transform="translate(1530 610)">
+ <rect x="0" y="0" width="300" height="205" fill="#1a1234" stroke="#41e4f2" stroke-width="5"/>
+ <rect x="0" y="0" width="300" height="32" fill="#a74cce"/>
+ <text x="15" y="22" fill="#fff" font-family="monospace" font-size="16">ARCADE.EXE</text>
+ <rect x="20" y="55" width="260" height="125" fill="#29204e" stroke="#ff6cc7" stroke-width="3"/>
+ <path d="M30 150L90 95L145 135L205 75L270 140" fill="none" stroke="#42e6f3" stroke-width="5"/>
+</g>
+<g transform="translate(1260 690)">
+ <rect x="0" y="0" width="220" height="150" fill="#20143c" stroke="#ff69c5" stroke-width="4"/>
+ <rect x="0" y="0" width="220" height="25" fill="#5940a0"/>
+ <text x="12" y="18" fill="#fff" font-family="monospace" font-size="12">SYSTEM 98</text>
+ <path d="M18 48h180M18 70h145M18 92h170M18 114h105" stroke="#42e6f3" stroke-width="5" opacity=".8"/>
+</g>
+<!-- pixel stars -->
+<g fill="#fff" opacity=".8"><path d="M820 130h12v36h-12zM808 142h36v12h-36zM1050 230h8v24h-8zM1042 238h24v8h-24zM1780 180h10v30h-10zM1770 190h30v10h-30z"/></g>
+<rect width="1920" height="1080" fill="url(#scan)"/>
+</svg>
