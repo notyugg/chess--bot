@@ -194,7 +194,6 @@ class Game:
                 self.owners[sq] = creditor_idx
                 if sq not in to.properties: to.properties.append(sq)
         p.properties = []
-        p.buildings = {}
         self._log(f"{p.name} is bankrupt!")
         alive = [pl for pl in self.players if not pl.bankrupt]
         if len(alive) == 1:
@@ -217,7 +216,6 @@ class Game:
                     self._log(f"{p.name} landed on {sq['name']} (price {sq['price']}).")
                 else:
                     self._log(f"{p.name} landed on {sq['name']} but cannot afford it.")
-            elif self.owners[idx] != self.current:
         elif kind == "tax":
             self._log(f"{p.name} pays {sq['name']} of {sq['amount']}.")
             self._pay(sq["amount"])
