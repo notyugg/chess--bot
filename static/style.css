@@ -465,3 +465,92 @@ input::placeholder{color:#9386bc!important}.chess-options label{color:#c1b6e5!im
 .page-business_page .center h2,.page-business_page .center h3{color:#fff!important;text-shadow:0 0 12px #39e5f288}.page-business_page .center .turn-label{color:#55e7f1!important}.page-business_page .center .die{color:#302052!important;background:linear-gradient(145deg,#eeeaff,#aaa0d8)!important}.page-business_page .center .roll-total{color:#ff78c4!important}.page-business_page .center .log{color:#d2d0f2!important;border-color:#ffffff33!important}
 .page-business_page .center .actions button{background:linear-gradient(#ff65b1,#c92b86)!important}.page-business_page .center .actions button.secondary{color:#eeeaff!important;background:linear-gradient(#443568,#251b45)!important}
 footer{color:#a99bcf!important;border-color:#9784ff44!important}
+
+
+/* REFERENCE-LED REDESIGN: Y2K desktop OS meets vaporwave arcade */
+html { background:#130d2b; }
+body {
+  isolation:isolate;
+  color:#f4edff !important;
+  background:
+    linear-gradient(180deg,rgba(13,8,35,.68),rgba(13,8,35,.76)),
+    url("/static/vaporwave-desktop.svg") center center / cover fixed,
+    #130d2b !important;
+}
+body::before {
+  content:""; position:fixed; inset:0; z-index:-1; pointer-events:none;
+  background:repeating-linear-gradient(0deg,rgba(255,255,255,.025) 0 1px,transparent 1px 4px);
+  opacity:.5;
+}
+nav {
+  position:relative; z-index:5; margin:14px auto 0; width:calc(100% - 36px);
+  max-width:1500px; min-height:62px; padding:10px 18px;
+  border:2px solid #9c86ec !important; border-radius:7px 7px 2px 2px !important;
+  background:linear-gradient(180deg,#7654ae 0%,#42296f 48%,#291b4d 100%) !important;
+  box-shadow:inset 1px 1px #ffffff80,inset -2px -2px #130c2d,0 0 0 3px #21143e,0 8px 24px #050312a8 !important;
+}
+nav::after {
+  content:""; position:absolute; left:0; right:0; bottom:-7px; height:3px;
+  background:linear-gradient(90deg,#ff58c4,#43e9f5,#a88cff,#ff58c4); opacity:.9;
+}
+nav .brand { font-weight:800; letter-spacing:.04em; color:#fff !important; text-shadow:0 0 12px #ff63ce; }
+nav .brand-mark { color:#48efff !important; }
+nav a:not(.brand) { padding:7px 11px; border:1px solid transparent; color:#eee5ff !important; font-size:.88rem; }
+nav a:not(.brand):hover { border-color:#55eafa; background:linear-gradient(#8b5fc0,#412b72) !important; box-shadow:inset 1px 1px #ffffff70,0 0 12px #4aeaff55; }
+main { position:relative; z-index:1; width:min(1160px,calc(100% - 34px)); margin:36px auto 0; }
+.hero, .page-head, .section-heading { text-shadow:0 2px 8px #100923; }
+.hero { padding:clamp(25px,5vw,58px); border:1px solid #a47ee8; border-radius:5px; background:linear-gradient(120deg,rgba(32,17,65,.94),rgba(57,24,92,.76) 55%,rgba(13,35,74,.86)); box-shadow:inset 0 0 0 3px #ffffff0c,0 0 0 4px #21143d,0 18px 45px #05031299; position:relative; overflow:hidden; }
+.hero::before { content:""; position:absolute; inset:0; pointer-events:none; opacity:.28; background:linear-gradient(90deg,transparent 49.8%,#a88cff 50%,transparent 50.2%),linear-gradient(transparent 49.8%,#a88cff 50%,transparent 50.2%); background-size:42px 42px; mask-image:linear-gradient(90deg,transparent,#000 70%); }
+.hero::after { content:"WELCOME.EXE  ▸  INSERT COIN  ▸  PRESS START"; position:absolute; right:18px; bottom:12px; color:#51eafa; font:10px monospace; letter-spacing:.12em; text-shadow:0 0 9px #51eafa; }
+.hero h1 { position:relative; color:#fff !important; font-size:clamp(2.6rem,6vw,5rem); line-height:1.02; text-shadow:3px 3px #4b277e,0 0 24px #c25bff66; }
+.hero h1 span { color:#ff78d0 !important; }
+.hero-copy { max-width:620px; color:#e1d4ff !important; }
+.eyebrow { color:#50efff !important; font-family:monospace; letter-spacing:.17em; text-shadow:0 0 10px #50efff99; }
+.hero-foot { color:#c6b8ef !important; }
+.section-heading { margin-top:34px; padding:12px 16px; border:1px solid #7659b4; background:linear-gradient(90deg,#39215fdd,#1b1642dd); box-shadow:inset 0 1px #ffffff24,0 5px 16px #08051d77; }
+.section-heading h2 { color:#fff !important; font-family:monospace; text-transform:uppercase; letter-spacing:.06em; }
+.section-heading p { color:#53eafa !important; font-family:monospace; }
+.cards { gap:20px; }
+.card {
+  position:relative; overflow:hidden; min-height:310px; padding:24px;
+  border:2px solid #9478dc !important; border-radius:4px !important;
+  background:linear-gradient(145deg,rgba(80,48,130,.96),rgba(28,19,62,.97) 65%,rgba(14,38,76,.97)) !important;
+  box-shadow:inset 2px 2px #ffffff3d,inset -2px -2px #08051d99,0 0 0 3px #1c1239,0 12px 24px #050312aa !important;
+}
+.card::before { content:""; position:absolute; inset:0; pointer-events:none; opacity:.18; background:repeating-linear-gradient(0deg,transparent 0 5px,#fff 6px,transparent 7px); }
+.card::after { content:""; position:absolute; top:0; left:0; right:0; height:7px; border:0; border-radius:0; background:linear-gradient(90deg,#ff54c4,#49edff,#a98bff); box-shadow:0 0 14px #9d64ff99; }
+.card:hover { transform:translateY(-5px); border-color:#54efff !important; box-shadow:inset 2px 2px #ffffff44,0 0 0 3px #1c1239,0 0 25px #54efff66 !important; }
+.card h2 { color:#fff !important; text-shadow:0 0 12px #b66bff88; }
+.card p { color:#d2c5f2 !important; }
+.game-number { color:#58efff !important; font: .72rem monospace; letter-spacing:.12em; }
+.game-symbol { color:#ff79d2 !important; background:linear-gradient(145deg,#6d45a5,#241744) !important; border:1px solid #ff78d2 !important; box-shadow:0 0 14px #ff56c466,inset 1px 1px #ffffff55; }
+.card-link { color:#55efff !important; font-family:monospace; text-transform:uppercase; letter-spacing:.06em; }
+.page-tag { color:#f7edff !important; background:linear-gradient(#7958b8,#38245f) !important; border:1px solid #a88af2 !important; border-radius:3px !important; box-shadow:inset 1px 1px #ffffff66,inset -1px -1px #160d30,0 0 12px #a16cff44; }
+button { border-radius:3px !important; border:1px solid #c0a0ff !important; background:linear-gradient(180deg,#b65be2,#663bb2 55%,#3a2675) !important; box-shadow:inset 1px 1px #ffffff77,inset -1px -1px #160d30,0 3px #21113f,0 0 12px #b65be255 !important; font-family:monospace; letter-spacing:.025em; }
+button.secondary { color:#f2eaff !important; background:linear-gradient(#59417e,#281d4b) !important; border-color:#7d69b7 !important; }
+input,select,.chess-options select { color:#f6edff !important; background:linear-gradient(#1c1538,#30204f) !important; border:1px solid #8c70ca !important; border-radius:3px !important; box-shadow:inset 0 2px 6px #08051d99,0 0 8px #8c70ca22; }
+input::placeholder { color:#a99bcf !important; }
+.chess-options label { color:#d7c9f4 !important; }
+.page-head { padding:22px 25px; border:1px solid #8d70cb; background:linear-gradient(110deg,#281846eF,#1a1944eF); box-shadow:inset 0 1px #ffffff24,0 9px 24px #05031288; }
+.page-head p { color:#d4c8f1 !important; }
+.game-shell { gap:20px; }
+.chess-stage,.chess-panel,#setup,.page-business_page .business-rules,.page-business_page .finance-panel {
+  color:#eee7ff !important; background:linear-gradient(145deg,rgba(53,34,88,.98),rgba(23,17,51,.98)) !important;
+  border:1px solid #8d70cb !important; border-radius:4px !important;
+  box-shadow:inset 1px 1px #ffffff24,inset -1px -1px #09051c,0 8px 22px #05031288 !important;
+}
+.chess-panel h2,.business-rules strong,.finance-panel h3 { color:#fff !important; }
+.chess-panel p,.business-rules,.finance-panel p { color:#d4c8f1 !important; }
+#board { border:7px solid #38245f !important; outline:1px solid #a98bff; box-shadow:0 0 0 3px #1b1238,0 0 28px #9a61ff77,0 18px 38px #050312aa !important; }
+#board .sq.l { background:#c8b8e8 !important; }
+#board .sq.d { background:#50356f !important; }
+#board .sq.sel { outline:3px solid #ff60c7 !important; box-shadow:inset 0 0 0 4px #ff60c744,0 0 16px #ff60c799 !important; }
+#board .sq.target::after { background:#4befff !important; box-shadow:0 0 14px #4befff !important; }
+.player,.page-business_page .player { color:#f1eaff !important; background:linear-gradient(145deg,#4b326e,#241942) !important; border:1px solid #8668c4 !important; border-left:5px solid #4befff !important; }
+.player.current,.page-business_page .player.current { outline:2px solid #ff62c8 !important; }
+.page-business_page .mono { background:linear-gradient(145deg,#4c3475,#20163e) !important; border:2px solid #a17ee9 !important; box-shadow:0 0 0 3px #1b1238,0 0 28px #9a61ff66,0 18px 38px #050312aa !important; }
+.page-business_page .cell { color:#f1eaff !important; background:linear-gradient(145deg,#3d285f,#20163d) !important; border-color:#9272d055 !important; }
+.page-business_page .center { background:linear-gradient(#a18cff14 1px,transparent 1px),linear-gradient(90deg,#a18cff14 1px,transparent 1px),radial-gradient(ellipse at 50% 0%,#39e5f238,transparent 70%),linear-gradient(145deg,#21153f,#100d27) !important; background-size:18px 18px,18px 18px,auto,auto !important; border:1px solid #9a83ec !important; }
+.page-business_page .center h2,.page-business_page .center h3 { color:#fff !important; }
+footer { color:#b7a8dc !important; border-color:#8d70cb66 !important; }
+@media(max-width:760px){nav{width:calc(100% - 18px);gap:4px;flex-wrap:wrap}main{width:calc(100% - 22px);margin-top:20px}.hero{padding:24px 18px}.hero::after{font-size:8px}.card{min-height:250px}}
