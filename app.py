@@ -22,7 +22,6 @@ def error(message, code=400):
     return jsonify({"error": message}), code
 
 
-# ------------------------------------------------------------------ pages ---
 @app.route("/")
 def home():
     return render_template("index.html")
@@ -43,7 +42,6 @@ def business_page():
     return render_template("business.html")
 
 
-# ----------------------------------------------------------------- chess ----
 # python-chess is imported lazily so the other games still work if it is missing.
 @app.route("/api/chess/move", methods=["POST"])
 def chess_move():
@@ -81,7 +79,6 @@ def chess_move():
 
 @app.route("/api/chess/start", methods=["POST"])
 def chess_start():
-    """Let the bot make the opening move when the human chooses Black."""
     import chess
     import chess_bot
 
@@ -115,8 +112,7 @@ def chess_legal():
     return jsonify({"targets": targets})
 
 
-# -------------------------------------------------------------- checkers ----
-# The client keeps the board and sends it each time (stateless server for this game).
+# Checkers sends the board with each move.
 CHECKERS_DEPTH = 4
 
 
@@ -150,8 +146,7 @@ def checkers_move():
     return jsonify({"board": board, "bot_move": bot_move, "moves": moves, "winner": winner})
 
 
-# -------------------------------------------------------------- business ----
-# One shared game kept in memory on the server (fine for a demo: restarts reset it).
+# The active Business game lives in memory until the server restarts.
 game = None
 
 
@@ -185,7 +180,6 @@ def business_state():
 
 
 def business_action(name):
-    """Run a Game method (roll, buy, ...) and return the new state as JSON."""
     if not need_game():
         return error("No game yet. POST /api/business/new first.", 404)
     try:
