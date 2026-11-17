@@ -1,13 +1,13 @@
 {% extends "base.html" %}
 {% block title %}Business{% endblock %}
 {% block content %}
-<div class="page-head"><div><span class="eyebrow">A little strategy, a little luck</span><h1>Business</h1><p>Build a property empire across India. Buy the cities, collect rent, and let the dice decide the detours.</p></div><div class="page-tag">🎲 Property / 2–6 players</div></div><button id="sound-toggle" class="secondary sound-toggle" aria-pressed="true">♫ Sound on</button>
+<div class="page-head"><div><span class="eyebrow">A little strategy, a little luck</span><h1>Business</h1><p>Buy properties across India, build your portfolio, and let the dice decide the detours.</p></div><div class="page-tag">🎲 Property / 2–6 players</div></div><button id="sound-toggle" class="secondary sound-toggle" aria-pressed="true">♫ Sound on</button>
 
 <div id="setup">
   <div class="business-rules">
     <strong>How to build your empire</strong>
-    <span>Buy cities, collect rent, and complete colour groups.</span>
-    <span>Own a full colour group to build houses and hotels. Passing on a property starts an auction.</span>
+    <span>Buy cities and grow your property portfolio.</span>
+    <span>Passing on an unowned property starts an auction. Properties do not generate rent.</span>
     <span>Trade property and cash, watch your net worth, and avoid bankruptcy. Last solvent player wins.</span>
   </div>
   <p>Enter 2 to 6 player names (comma separated):</p>
@@ -104,7 +104,7 @@ function render() {
     }
     const name = document.createElement("div");
     const assets = state.board_assets[String(i)] || {};
-    name.textContent = sq.name + (sq.price ? " (" + sq.price + ")" : "") + (assets.buildings ? " · " + (assets.buildings === 5 ? "🏨" : "🏠".repeat(assets.buildings)) : "") + ;
+    name.textContent = sq.name + (sq.price ? " (" + sq.price + ")" : "");
     cell.appendChild(name);
 
     const owner = state.owners[String(i)];
@@ -187,27 +187,11 @@ function render() {
   finance.className = "finance-panel";
   const ownProps = cur.properties || [];
   const propList = ownProps.map(i => i + ": " + BOARD[i].name).join(" · ") || "No properties yet";
-  finance.innerHTML = "<h3>Assets</h3><p><small>Net worth: " + (cur.net_worth || 0) + "</small></p><p class='finance-owned'><small>" + propList + "</small></p>";
+  finance.innerHTML = "<h3>Properties</h3><p><small>Portfolio value: " + (cur.net_worth || 0) + "</small></p><p class='finance-owned'><small>" + propList + "</small></p>";
   const addFinanceBtn = (label, handler, secondary = true) => {
     const b = document.createElement("button"); b.textContent = label; if (secondary) b.className = "secondary";
     b.disabled = state.phase !== "roll"; b.onclick = handler; finance.appendChild(b);
   };
-  const chooseSquare = (indices, promptText) => {
-    if (!indices.length) { setStatus("You have no eligible properties.", true); return null; }
-    const list = indices.map(i => i + ": " + BOARD[i].name).join("\n");
-    const answer = prompt(promptText + "\n" + list + "\nEnter the property number:");
-    if (answer === null) return null;
-    const n = Number(answer.trim());
-    return indices.includes(n) ? n : (setStatus("That property number isn't in the list.", true), null);
-  };
-  addFinanceBtn("Build house / hotel", () => {
-    const sq = chooseSquare(ownProps.filter(i => BOARD[i].type === "property"), "Choose a property to develop");
-    if (sq !== null) act("build", {square: sq});
-  });
-  addFinanceBtn("Sell building", () => {
-    const sq = chooseSquare(Object.keys(cur.buildings || {}).map(Number), "Choose a property to sell a building from");
-    if (sq !== null) act("sell_building", {square: sq});
-  });
   addFinanceBtn("Trade with player", () => {
     const candidates = state.players.map((p, i) => i === state.current || p.bankrupt ? null : i + ": " + p.name + " (cash " + p.cash + ")").filter(Boolean).join("\n");
     const targetRaw = prompt("Choose a player index:\n" + candidates);
