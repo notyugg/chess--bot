@@ -2,7 +2,7 @@
 business.py - backend logic for a Monopoly-style game ("Business").
 
 Pure Python, no Flask in here. The Game class holds all state and exposes
-methods (roll, buy, skip_buy, end_turn, pay_jail_fine) plus state() which
+methods (roll, buy, end_turn, pay_jail_fine) plus state() which
 returns a JSON-friendly dict, so a Flask route can just do jsonify(game.state()).
 """
 import random
@@ -124,7 +124,7 @@ class Game:
     """
     phase:
       "roll"     - current player must roll
-      "buy"      - current player landed on an unowned square (buy or skip)
+      "buy"      - current player landed on an unowned square
       "end_turn" - nothing left to do, call end_turn()
       "over"     - game finished, see winner
     """
@@ -141,7 +141,6 @@ class Game:
         self.doubles_streak = 0
         self.log = []
         self.winner = None
-        self.auction = None
 
     # ---- helpers ----
     @property
@@ -317,15 +316,6 @@ class Game:
         self._log(f"{p.name} bought {sq['name']} for {sq['price']}.")
         return self.state()
 
-    def skip_buy(self):
-        self._check_phase("buy")
-        sq = BOARD[self.player.position]
-        self._log(f"{self.player.name} passed on {sq['name']}; the property is up for auction.")
-        self.auction = {"property": self.player.position, "bid": 0, "leader": None,
-                        "passed": [], "turn": self.current, "eligible": [i for i, p in enumerate(self.players) if not p.bankrupt]}
-        self.phase = "auction"
-        return self.state()
-
     def end_turn(self):
         self._check_phase("end_turn")
         if self.rolled_doubles and not self.player.bankrupt and not self.player.in_jail:
@@ -368,43 +358,6 @@ class Game:
         return self.state()
 
 
-    def auction_bid(self, amount=10):
-        if self.phase != "auction" or not self.auction: raise ValueError("No auction is active.")
-        a=self.auction; p=self.player
-        try: amount=int(amount)
-        except (TypeError, ValueError): raise ValueError("Bid must be a whole number.")
-        if amount < a["bid"]+10: raise ValueError(f"Bid at least {a['bid']+10}.")
-        if p.bankrupt or p.cash < amount: raise ValueError("You cannot afford that bid.")
-        a["bid"]=amount; a["leader"]=self.current; a["passed"]=[]
-        self._log(f"{p.name} bids {amount} for {BOARD[a['property']]['name']}.")
-        self._advance_auction(); return self.state()
-
-    def auction_pass(self):
-        if self.phase != "auction" or not self.auction: raise ValueError("No auction is active.")
-        if self.current not in self.auction["passed"]: self.auction["passed"].append(self.current)
-        self._log(f"{self.player.name} passes on the auction.")
-        self._advance_auction(); return self.state()
-
-    def _advance_auction(self):
-        a=self.auction
-        if not a: return
-        eligible=[i for i in a["eligible"] if not self.players[i].bankrupt]
-        leader=a["leader"]
-        if leader is not None and all(i == leader or i in a["passed"] for i in eligible):
-            sq=a["property"]; winner=self.players[leader]
-            if winner.cash >= a["bid"]:
-                winner.cash-=a["bid"]; winner.properties.append(sq); self.owners[sq]=leader
-                self._log(f"{winner.name} won {BOARD[sq]['name']} at auction for {a['bid']}.")
-            self.current=a["turn"]; self.auction=None; self.phase="end_turn"; return
-        if leader is None and len(a["passed"]) >= len(eligible):
-            self._log(f"No bids for {BOARD[a['property']]['name']}; it returns to the bank.")
-            self.current=a["turn"]; self.auction=None; self.phase="end_turn"; return
-        for step in range(1,len(self.players)+1):
-            nxt=(self.current+step)%len(self.players)
-            if nxt in eligible and nxt not in a["passed"]:
-                self.current=nxt; return
-        self.auction=None; self.phase="end_turn"
-
     def state(self):
         return {
             "players": [p.to_dict() for p in self.players],
@@ -415,7 +368,6 @@ class Game:
             "owners": {str(k): v for k, v in self.owners.items()},
             "log": self.log[-10:],
             "winner": self.winner,
-            "auction": self.auction,
         }
 
 
