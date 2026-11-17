@@ -1,13 +1,3 @@
-"""Flask app: one site, three games (Chess, Checkers, Business).
-
-Run:   py app.py        then open http://127.0.0.1:5000
-
-How it is organised
-  - Pages (GET)  : /, /chess, /checkers, /business  -> return HTML from templates/
-  - API (JSON)   : /api/<game>/...                  -> the frontend calls these with fetch()
-  - Game logic stays in its own file (chess_bot.py, engine.py + checkersbot.py, business.py).
-    The routes here only translate HTTP <-> those functions.
-"""
 from flask import Flask, jsonify, render_template, request
 
 import business
