@@ -12,9 +12,6 @@ GO_SALARY = 200
 JAIL_POS = 10
 JAIL_FINE = 50
 BOARD_SIZE = 40
-LOAN_STEP = 200
-LOAN_LIMIT = 1000
-LOAN_INTEREST_RATE = 0.10
 BUILD_COST = {"brown": 50, "lightblue": 50, "pink": 100, "orange": 100, "red": 150, "yellow": 150, "green": 200, "blue": 200}
 
 
@@ -112,8 +109,6 @@ class Player:
         self.jail_turns = 0
         self.properties = []
         self.bankrupt = False
-        self.loan = 0
-        self.mortgaged = []
         self.buildings = {}
 
     def to_dict(self):
@@ -124,10 +119,8 @@ class Player:
             "in_jail": self.in_jail,
             "properties": sorted(self.properties),
             "bankrupt": self.bankrupt,
-            "loan": self.loan,
-            "mortgaged": sorted(self.mortgaged),
             "buildings": {str(k): v for k, v in self.buildings.items()},
-            "net_worth": self.cash + sum(BOARD[i]["price"] for i in self.properties) - sum(BOARD[i]["price"] // 2 for i in self.mortgaged) + sum(BUILD_COST.get(BOARD[i].get("color"), 50) * n // 2 for i, n in self.buildings.items()) - self.loan,
+            "net_worth": self.cash + sum(BOARD[i]["price"] for i in self.properties) + sum(BUILD_COST.get(BOARD[i].get("color"), 50) * n // 2 for i, n in self.buildings.items()),
         }
 
 
@@ -205,11 +198,8 @@ class Game:
             else:
                 self.owners[sq] = creditor_idx
                 if sq not in to.properties: to.properties.append(sq)
-                if sq in p.mortgaged and sq not in to.mortgaged: to.mortgaged.append(sq)
         p.properties = []
-        p.mortgaged = []
         p.buildings = {}
-        p.loan = 0
         self._log(f"{p.name} is bankrupt!")
         alive = [pl for pl in self.players if not pl.bankrupt]
         if len(alive) == 1:
@@ -220,8 +210,6 @@ class Game:
     def _rent(self, sq_index, dice_total):
         sq = BOARD[sq_index]
         owner = self.players[self.owners[sq_index]]
-        if sq_index in owner.mortgaged:
-            return 0
         if sq["type"] == "property":
             houses = owner.buildings.get(sq_index, 0)
             if houses:
@@ -385,11 +373,6 @@ class Game:
             return self.state()
         self.doubles_streak = 0
         self.rolled_doubles = False
-        if self.player.loan:
-            interest = max(10, int(self.player.loan * LOAN_INTEREST_RATE + 0.5))
-            self._log(f"{self.player.name} pays {interest} loan interest.")
-            self._pay(interest)
-            if self.phase == "over": return self.state()
         while True:
             self.current = (self.current + 1) % len(self.players)
             if not self.player.bankrupt:
@@ -400,63 +383,15 @@ class Game:
 
     # ---- serialisation ----
 
-    def take_loan(self, amount=LOAN_STEP):
-        self._check_phase("roll"); p = self.player
-        try: amount = int(amount)
-        except (TypeError, ValueError): raise ValueError("Loan amount must be a whole number.")
-        if amount <= 0 or amount % LOAN_STEP: raise ValueError(f"Loans must be multiples of {LOAN_STEP}.")
-        if p.loan + amount > LOAN_LIMIT: raise ValueError(f"Bank loan limit is {LOAN_LIMIT}.")
-        p.loan += amount; p.cash += amount
-        self._log(f"{p.name} borrowed {amount}; loan balance is {p.loan}.")
-        return self.state()
-
-    def repay_loan(self, amount=LOAN_STEP):
-        self._check_phase("roll"); p = self.player
-        try: amount = int(amount)
-        except (TypeError, ValueError): raise ValueError("Repayment must be a whole number.")
-        if amount <= 0 or amount % LOAN_STEP: raise ValueError(f"Repayments must be multiples of {LOAN_STEP}.")
-        if p.loan <= 0: raise ValueError("You have no bank loan.")
-        payment = min(amount, p.loan)
-        if p.cash < payment: raise ValueError("Not enough cash to repay that amount.")
-        p.cash -= payment; p.loan -= payment
-        self._log(f"{p.name} repaid {payment}; loan balance is {p.loan}.")
-        return self.state()
-
-    def mortgage(self, square):
-        self._check_phase("roll"); p = self.player
-        try: square = int(square)
-        except (TypeError, ValueError): raise ValueError("Choose a valid property.")
-        if square not in p.properties: raise ValueError("You do not own that property.")
-        if square in p.mortgaged: raise ValueError("That property is already mortgaged.")
-        if p.buildings.get(square, 0): raise ValueError("Sell its buildings before mortgaging it.")
-        sq = BOARD[square]
-        if sq["type"] not in ("property", "railroad", "utility"): raise ValueError("That square cannot be mortgaged.")
-        value = sq["price"] // 2; p.mortgaged.append(square); p.cash += value
-        self._log(f"{p.name} mortgaged {sq['name']} for {value}.")
-        return self.state()
-
-    def unmortgage(self, square):
-        self._check_phase("roll"); p = self.player
-        try: square = int(square)
-        except (TypeError, ValueError): raise ValueError("Choose a valid property.")
-        if square not in p.properties or square not in p.mortgaged: raise ValueError("That property is not mortgaged by you.")
-        cost = int(BOARD[square]["price"] * 0.55 + 0.5)
-        if p.cash < cost: raise ValueError(f"You need {cost} to unmortgage it.")
-        p.cash -= cost; p.mortgaged.remove(square)
-        self._log(f"{p.name} unmortgaged {BOARD[square]['name']} for {cost}.")
-        return self.state()
-
-
     def build(self, square):
         self._check_phase("roll"); p = self.player
         try: square = int(square)
         except (TypeError, ValueError): raise ValueError("Choose a valid property.")
         if square not in p.properties: raise ValueError("You do not own that property.")
         sq = BOARD[square]
-        if sq.get("type") != "property" or square in p.mortgaged: raise ValueError("You cannot build there.")
+        if sq.get("type") != "property": raise ValueError("You cannot build there.")
         group = color_group(sq["color"])
         if not group or not all(self.owners.get(i) == self.current for i in group): raise ValueError("Own the full colour group to build.")
-        if any(i in p.mortgaged for i in group): raise ValueError("Unmortgage the whole colour group first.")
         level = p.buildings.get(square, 0)
         if level >= 5: raise ValueError("This property already has a hotel.")
         if level > min(p.buildings.get(i, 0) for i in group): raise ValueError("Buildings must be spread evenly across the group.")
@@ -498,10 +433,8 @@ class Game:
         if any(p.buildings.get(i,0) or other.buildings.get(i,0) for i in give_properties + take_properties): raise ValueError("Sell buildings before trading those properties.")
         for i in give_properties:
             p.properties.remove(i); other.properties.append(i); self.owners[i]=target
-            if i in p.mortgaged: p.mortgaged.remove(i); other.mortgaged.append(i)
         for i in take_properties:
             other.properties.remove(i); p.properties.append(i); self.owners[i]=self.current
-            if i in other.mortgaged: other.mortgaged.remove(i); p.mortgaged.append(i)
         p.cash += take_cash-give_cash; other.cash += give_cash-take_cash
         self._log(f"{p.name} completed a trade with {other.name}.")
         return self.state()
@@ -555,8 +488,7 @@ class Game:
             "log": self.log[-10:],
             "winner": self.winner,
             "auction": self.auction,
-            "finance": {"loan_step": LOAN_STEP, "loan_limit": LOAN_LIMIT, "interest_rate": LOAN_INTEREST_RATE, "building_costs": BUILD_COST},
-            "board_assets": {str(i): {"mortgaged": i in self.players[o].mortgaged, "buildings": self.players[o].buildings.get(i, 0)} for i, o in self.owners.items()},
+            "board_assets": {str(i): {"buildings": self.players[o].buildings.get(i, 0)} for i, o in self.owners.items()},
         }
 
 
