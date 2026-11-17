@@ -37,7 +37,7 @@ function setStatus(msg, isError = false) {
   statusEl.className = "status" + (isError ? " error" : "");
 }
 
-// square index (0-39) -> [row, col] on an 11x11 grid, going round the edge
+// Keep the board squares around the outside of the grid.
 function gridPos(i) {
   if (i <= 10) return [10, 10 - i];
   if (i <= 20) return [10 - (i - 10), 0];
@@ -129,7 +129,6 @@ function render() {
     mono.appendChild(cell);
   });
 
-  // centre panel: whose turn, dice, buttons, log
   const center = document.createElement("div");
   center.className = "center";
   const phase = state.phase;
@@ -164,7 +163,6 @@ function render() {
   center.appendChild(log);
   mono.appendChild(center);
 
-  // players sidebar
   const side = document.getElementById("players");
   side.innerHTML = "";
   state.players.forEach((p, idx) => {
@@ -212,7 +210,7 @@ document.getElementById("start").onclick = async () => {
   } catch (e) { setStatus(e.message, true); }
 };
 
-// if a game is already running on the server (e.g. page refresh), pick it up
+// Resume the current game after a refresh.
 (async () => {
   try {
     BOARD = await api("/api/business/board");
