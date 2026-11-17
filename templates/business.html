@@ -7,8 +7,6 @@
   <div class="business-rules">
     <strong>How to build your empire</strong>
     <span>Buy cities, collect rent, and complete colour groups.</span>
-    <span>Borrow in 200 increments (up to 1,000); 10% interest is charged at the end of your turn.</span>
-    <span>Mortgage properties for half their price, then pay 55% of list price to release them.</span>
     <span>Own a full colour group to build houses and hotels. Passing on a property starts an auction.</span>
     <span>Trade property and cash, watch your net worth, and avoid bankruptcy. Last solvent player wins.</span>
   </div>
@@ -106,7 +104,7 @@ function render() {
     }
     const name = document.createElement("div");
     const assets = state.board_assets[String(i)] || {};
-    name.textContent = sq.name + (sq.price ? " (" + sq.price + ")" : "") + (assets.buildings ? " · " + (assets.buildings === 5 ? "🏨" : "🏠".repeat(assets.buildings)) : "") + (assets.mortgaged ? " · MORTGAGED" : "");
+    name.textContent = sq.name + (sq.price ? " (" + sq.price + ")" : "") + (assets.buildings ? " · " + (assets.buildings === 5 ? "🏨" : "🏠".repeat(assets.buildings)) : "") + ;
     cell.appendChild(name);
 
     const owner = state.owners[String(i)];
@@ -181,7 +179,7 @@ function render() {
     d.className = "player" + (idx === state.current ? " current" : "") + (p.bankrupt ? " bankrupt" : "");
     d.style.borderLeftColor = TOKEN_COLORS[idx];
     const props = p.properties.map(i => BOARD[i].name).join(", ") || "none";
-    d.innerHTML = `<b>${p.name}</b>${p.in_jail ? " (in jail)" : ""}<br>Cash: ${p.cash}<br>Loan: ${p.loan || 0} · Net worth: ${p.net_worth || 0}<br><small>Owns: ${props}</small>`;
+    d.innerHTML = `<b>${p.name}</b>${p.in_jail ? " (in jail)" : ""}<br>Cash: ${p.cash}<br>Net worth: ${p.net_worth || 0}<br><small>Owns: ${props}</small>`;
     side.appendChild(d);
   });
 
@@ -189,8 +187,7 @@ function render() {
   finance.className = "finance-panel";
   const ownProps = cur.properties || [];
   const propList = ownProps.map(i => i + ": " + BOARD[i].name).join(" · ") || "No properties yet";
-  finance.innerHTML = "<h3>Bank & assets</h3><p>Loan: <b>" + (cur.loan || 0) + "</b> / " + (state.finance ? state.finance.loan_limit : 1000) +
-    "<br><small>Interest: 10% per turn · Net worth: " + (cur.net_worth || 0) + "</small></p><p class='finance-owned'><small>" + propList + "</small></p>";
+  finance.innerHTML = "<h3>Assets</h3><p><small>Net worth: " + (cur.net_worth || 0) + "</small></p><p class='finance-owned'><small>" + propList + "</small></p>";
   const addFinanceBtn = (label, handler, secondary = true) => {
     const b = document.createElement("button"); b.textContent = label; if (secondary) b.className = "secondary";
     b.disabled = state.phase !== "roll"; b.onclick = handler; finance.appendChild(b);
@@ -203,16 +200,6 @@ function render() {
     const n = Number(answer.trim());
     return indices.includes(n) ? n : (setStatus("That property number isn't in the list.", true), null);
   };
-  addFinanceBtn("Borrow 200", () => act("take_loan", {amount: 200}), false);
-  addFinanceBtn("Repay 200", () => act("repay_loan", {amount: 200}));
-  addFinanceBtn("Mortgage property", () => {
-    const sq = chooseSquare(ownProps.filter(i => !(cur.mortgaged || []).includes(i) && !(cur.buildings || {})[String(i)]), "Choose a property to mortgage");
-    if (sq !== null) act("mortgage", {square: sq});
-  });
-  addFinanceBtn("Unmortgage", () => {
-    const sq = chooseSquare(cur.mortgaged || [], "Choose a property to unmortgage");
-    if (sq !== null) act("unmortgage", {square: sq});
-  });
   addFinanceBtn("Build house / hotel", () => {
     const sq = chooseSquare(ownProps.filter(i => BOARD[i].type === "property"), "Choose a property to develop");
     if (sq !== null) act("build", {square: sq});
