@@ -171,7 +171,7 @@ class Game:
                 self.owners.pop(sq, None)
             else:
                 self.owners[sq] = creditor_idx
-                    if sq not in to.properties:
+                if sq not in to.properties:
                     to.properties.append(sq)
         p.properties = []
         self._log(f"{p.name} is bankrupt!")
