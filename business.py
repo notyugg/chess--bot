@@ -1,10 +1,3 @@
-"""
-business.py - backend logic for a Monopoly-style game ("Business").
-
-Pure Python, no Flask in here. The Game class holds all state and exposes
-methods (roll, buy, end_turn, pay_jail_fine) plus state() which
-returns a JSON-friendly dict, so a Flask route can just do jsonify(game.state()).
-"""
 import random
 
 START_CASH = 1500
@@ -14,7 +7,6 @@ JAIL_FINE = 50
 BOARD_SIZE = 40
 
 
-# ---------------------------------------------------------------- board ----
 def _prop(name, color, price):
     return {"type": "property", "name": name, "color": color, "price": price}
 
@@ -32,49 +24,48 @@ def _other(kind, name, amount=0):
 
 
 BOARD = [
-    _other("go", "GO"),                                  # 0
-    _prop("Old Delhi", "brown", 60),                  # 1
-    _other("chance", "Chance"),                          # 2
-    _prop("Chandni Chowk", "brown", 60),              # 3
-    _other("tax", "Income Tax", 200),                    # 4
-    _rail("Delhi Junction"),                             # 5
-    _prop("Kochi", "lightblue", 100),                 # 6
-    _other("chance", "Chance"),                          # 7
-    _prop("Goa", "lightblue", 100),                   # 8
-    _prop("Pune", "lightblue", 120),                  # 9
-    _other("jail", "Jail / Just Visiting"),              # 10
-    _prop("Jaipur", "pink", 140),                    # 11
-    _util("Electric Company"),                           # 12
-    _prop("Udaipur", "pink", 140),                   # 13
-    _prop("Jodhpur", "pink", 160),                   # 14
-    _rail("Mumbai Central"),                             # 15
-    _prop("Lucknow", "orange", 180),                 # 16
-    _other("chance", "Chance"),                          # 17
-    _prop("Kanpur", "orange", 180),                  # 18
-    _prop("Varanasi", "orange", 200),                # 19
-    _other("parking", "Free Parking"),                   # 20
-    _prop("Chennai", "red", 220),                    # 21
-    _other("chance", "Chance"),                          # 22
-    _prop("Hyderabad", "red", 220),                  # 23
-    _prop("Bengaluru", "red", 240),                  # 24
-    _rail("Howrah"),                                     # 25
-    _prop("Kolkata", "yellow", 260),                 # 26
-    _prop("Ahmedabad", "yellow", 260),               # 27
-    _util("Water Works"),                                # 28
-    _prop("Surat", "yellow", 280),                   # 29
-    _other("gotojail", "Go To Jail"),                    # 30
-    _prop("Chandigarh", "green", 300),               # 31
-    _prop("Gurugram", "green", 300),                 # 32
-    _other("chance", "Chance"),                          # 33
-    _prop("Noida", "green", 320),                    # 34
-    _rail("Chennai Central"),                            # 35
-    _other("chance", "Chance"),                          # 36
-    _prop("Mumbai", "blue", 350),                    # 37
-    _other("tax", "Luxury Tax", 100),                    # 38
-    _prop("Delhi", "blue", 400),                     # 39
+    _other("go", "GO"),
+    _prop("Old Delhi", "brown", 60),
+    _other("chance", "Chance"),
+    _prop("Chandni Chowk", "brown", 60),
+    _other("tax", "Income Tax", 200),
+    _rail("Delhi Junction"),
+    _prop("Kochi", "lightblue", 100),
+    _other("chance", "Chance"),
+    _prop("Goa", "lightblue", 100),
+    _prop("Pune", "lightblue", 120),
+    _other("jail", "Jail / Just Visiting"),
+    _prop("Jaipur", "pink", 140),
+    _util("Electric Company"),
+    _prop("Udaipur", "pink", 140),
+    _prop("Jodhpur", "pink", 160),
+    _rail("Mumbai Central"),
+    _prop("Lucknow", "orange", 180),
+    _other("chance", "Chance"),
+    _prop("Kanpur", "orange", 180),
+    _prop("Varanasi", "orange", 200),
+    _other("parking", "Free Parking"),
+    _prop("Chennai", "red", 220),
+    _other("chance", "Chance"),
+    _prop("Hyderabad", "red", 220),
+    _prop("Bengaluru", "red", 240),
+    _rail("Howrah"),
+    _prop("Kolkata", "yellow", 260),
+    _prop("Ahmedabad", "yellow", 260),
+    _util("Water Works"),
+    _prop("Surat", "yellow", 280),
+    _other("gotojail", "Go To Jail"),
+    _prop("Chandigarh", "green", 300),
+    _prop("Gurugram", "green", 300),
+    _other("chance", "Chance"),
+    _prop("Noida", "green", 320),
+    _rail("Chennai Central"),
+    _other("chance", "Chance"),
+    _prop("Mumbai", "blue", 350),
+    _other("tax", "Luxury Tax", 100),
+    _prop("Delhi", "blue", 400),
 ]
 
-# (text, action, value)
 CHANCE_CARDS = [
     ("Bank pays you a dividend of 50.", "collect", 50),
     ("You won a quiz competition. Collect 100.", "collect", 100),
@@ -92,11 +83,9 @@ CHANCE_CARDS = [
 
 
 def color_group(color):
-    """Indexes of all properties of a colour."""
     return [i for i, sq in enumerate(BOARD) if sq.get("color") == color]
 
 
-# --------------------------------------------------------------- player ----
 class Player:
     def __init__(self, name):
         self.name = name
@@ -119,15 +108,7 @@ class Player:
         }
 
 
-# ----------------------------------------------------------------- game ----
 class Game:
-    """
-    phase:
-      "roll"     - current player must roll
-      "buy"      - current player landed on an unowned square
-      "end_turn" - nothing left to do, call end_turn()
-      "over"     - game finished, see winner
-    """
 
     def __init__(self, player_names):
         if not 2 <= len(player_names) <= 6:
@@ -142,7 +123,7 @@ class Game:
         self.log = []
         self.winner = None
 
-    # ---- helpers ----
+    # Small helpers used by the game actions.
     @property
     def player(self):
         return self.players[self.current]
@@ -173,14 +154,13 @@ class Game:
         self.phase = "end_turn"
 
     def _pay(self, amount, to=None):
-        """Player pays `amount` to another player (or the bank if to is None)."""
         p = self.player
         if p.cash >= amount:
             p.cash -= amount
             if to is not None:
                 to.cash += amount
             return
-        # cannot pay -> bankrupt: creditor gets everything the player has
+        # Transfer any remaining properties when a player goes bankrupt.
         if to is not None:
             to.cash += p.cash
         p.cash = 0
@@ -191,7 +171,8 @@ class Game:
                 self.owners.pop(sq, None)
             else:
                 self.owners[sq] = creditor_idx
-                if sq not in to.properties: to.properties.append(sq)
+                    if sq not in to.properties:
+                    to.properties.append(sq)
         p.properties = []
         self._log(f"{p.name} is bankrupt!")
         alive = [pl for pl in self.players if not pl.bankrupt]
@@ -200,7 +181,6 @@ class Game:
             self.phase = "over"
             self._log(f"{self.winner} wins the game!")
 
-    # ---- landing logic ----
     def _land(self, dice_total):
         p = self.player
         sq = BOARD[p.position]
@@ -247,7 +227,6 @@ class Game:
                 if other is not p and not other.bankrupt and not p.bankrupt:
                     self._pay(value, other)
 
-    # ---- public actions (one per API route) ----
     def pay_jail_fine(self):
         """Optional: pay the fine at the start of your turn to leave jail."""
         self._check_phase("roll")
@@ -333,7 +312,7 @@ class Game:
         self.last_roll = None
         return self.state()
 
-    # ---- serialisation ----
+    # Build the current game state for the frontend.
 
     def state(self):
         return {
@@ -349,11 +328,9 @@ class Game:
 
 
 def board_data():
-    """Static board description for the frontend (send once)."""
     return BOARD
 
 
-# ------------------------------------------------- quick terminal test ----
 if __name__ == "__main__":
     g = Game(["Yug", "Friend"])
     for _ in range(300):
