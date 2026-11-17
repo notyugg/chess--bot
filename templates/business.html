@@ -103,7 +103,6 @@ function render() {
       cell.appendChild(bar);
     }
     const name = document.createElement("div");
-    const assets = state.board_assets[String(i)] || {};
     name.textContent = sq.name + (sq.price ? " (" + sq.price + ")" : "");
     cell.appendChild(name);
 
