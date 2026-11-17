@@ -224,8 +224,7 @@ def business_extended_action(action):
     """Finance, development, trade and auction actions with optional JSON arguments."""
     if not need_game():
         return error("No game yet. Start a game first.", 404)
-    allowed = {"take_loan", "repay_loan", "mortgage", "unmortgage", "build",
-               "sell_building", "trade", "auction_bid", "auction_pass"}
+    allowed = {"build", "sell_building", "trade", "auction_bid", "auction_pass"}
     if action not in allowed:
         return error("Unknown Business action.")
     data = request.get_json(silent=True) or {}
